@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JJ Conjugator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!--
+        React 18 + Babel Standalone.
+        Cargamos React ANTES que los módulos para que window.React
+        esté disponible cuando dock.jsx se ejecute.
+    -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+
+    <!--
+        Contenedor principal de la app.
+        script3.js sigue pintando aquí todo el contenido dinámico,
+        exactamente igual que antes. No cambia nada de la lógica.
+    -->
+    <div id="app-container"></div>
+
+    <!-- Modal de irregularidades — sin cambios -->
+    <div id="modal-verbo" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close-btn" onclick="cerrarModalVerbo()">&times;</span>
+            <h3 class="modal-title">¿Qué es un verbo bota, sombrero o irregular radical?</h3>
+            <img id="imagen-explicativa" src="./Irregularidades.png"
+                 alt="Explicación de verbos bota, sombrero e irregulares">
+        </div>
+    </div>
+
+    <!--
+        Contenedor del dock React.
+        dock.jsx monta aquí su componente <Dock />.
+    -->
+    <div id="dock-root"></div>
+
+    <!--
+        1. Módulos ES de la app (lógica original, sin tocar).
+           Estos se ejecutan de forma diferida y asíncrona.
+    -->
+    <script type="module" src="./diccionario_conjugaciones.js"></script>
+    <script type="module" src="./explicacion_irregularidades_tiempos.js"></script>
+
+    <!--
+        2. script3.js — módulo ES con toda la lógica.
+           Al terminar, expone todas las funciones en window.*
+           pero NO llama a mostrarMenu() por sí solo.
+    -->
+    <script type="module" src="./script3.js"></script>
+
+    <!--
+        3. dock.jsx — componente React del dock inferior.
+           type="text/babel" → Babel lo transpila en el navegador.
+           data-type="module" NO; lo dejamos como script normal
+           para que tenga acceso a window.React / window.ReactDOM.
+
+           Se usa un pequeño truco: esperamos a que los módulos ES
+           hayan terminado registrando sus exports en window antes
+           de que el usuario pueda pulsar nada, lo cual ocurre de
+           forma natural porque los módulos siempre se ejecutan
+           antes del primer evento de usuario.
+
+           El propio dock.jsx llama a mountDock() en DOMContentLoaded
+           o inmediatamente si el DOM ya está listo.
+    -->
+    <script type="text/babel" src="./dock.jsx" data-presets="react"></script>
+
+    <!--
+        4. Arranca el menú inicial UNA VEZ que todo está cargado.
+           Usamos window.onload (dispara tras imágenes + scripts)
+           para garantizar que script3.js ya expuso sus funciones.
+    -->
+    <script>
+        window.addEventListener('load', function () {
+            if (typeof window.mostrarMenu === 'function') {
+                window.mostrarMenu();
+            }
+        });
+    </script>
+</body>
+</html>
