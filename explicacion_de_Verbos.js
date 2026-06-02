@@ -323,7 +323,6 @@ export const explicacionesVerbos = {
             "presente de subjuntivo": "haya",
             "imperfecto de subjuntivo": "hubiera/hubiese"
         },
-        participioIrregularForma: "habido",
         presenteTipoIrregular: "Irregularidad total",
         preteritoperfectoTipoIrregular: "habido", //es regular
         indefinidoTipoIrregular: "Irregularidad radical", // Simplificado
