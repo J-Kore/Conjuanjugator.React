@@ -434,6 +434,7 @@ export const explicacionesIrregularidadesTiempos = {
                     { verbo: "salir", participio: ["participio"] },
                     { verbo: "venir", participio: ["participio"] },
                     { verbo: "pedir", participio: ["participio"] },
+                    { verbo: "haber", participio: ["participio"] },
                     { verbo: "dormir", participio: ["participio"] },
                     { verbo: "jugar", participio: ["participio"] }
                 ]

@@ -311,7 +311,7 @@ export const explicacionesVerbos = {
             {
                 tipo: "Irregularidad radical",
                 tiempos: ["indefinido", "presente de subjuntivo", "imperfecto de subjuntivo", "futuro", "condicional"],
-                notas: "hube, hubiste; haya, hayas; hubiera/hubiese; habré, habrás; habría, habrías"
+                notas: "hube, hubiste, hubo; haya, hayas; hubiera/hubiese; habré, habrás; habría, habrías"
             },
         ],
         formasIrregularesYo: {
