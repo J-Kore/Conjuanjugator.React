@@ -16,96 +16,6 @@ import { actividadesIndefinidoImperfectoData } from './actividades_indefinido_im
 // ya que incluye todas las funciones y objetos que hemos estado trabajando.
 import { explicacionesIrregularidadesTiempos, generarHtmlExplicacionTiempoIrregularidad, formatIrregularityExample, capitalizeFirstLetter, todosLosTiemposVerbales } from './explicacion_irregularidades_tiempos.js';
 
-// === SILABOS: fondo híbrido (rejilla synthwave solo en zonas de juego) ===
-function setGameBackground(on){
-  try { document.body.classList.toggle('grid-on', !!on); } catch(e){}
-}
-if (typeof window !== 'undefined') window.setGameBackground = setGameBackground;
-
-// === SILABOS: fila de menú "a lo largo" (icono + título + descripción) ===
-function crearRowCard(iconId, accent, titulo, descripcion, onClick){
-  const btn = document.createElement('button');
-  btn.className = 'row-card';
-  btn.style.setProperty('--accent', accent);
-  btn.innerHTML = `
-    <span class="icwrap"><svg class="ico" viewBox="0 0 24 24"><use href="#${iconId}"/></svg></span>
-    <span class="txt"><h3>${titulo}</h3><p>${descripcion}</p></span>
-  `;
-  if (typeof onClick === 'function') btn.addEventListener('click', onClick);
-  return btn;
-}
-if (typeof window !== 'undefined') window.crearRowCard = crearRowCard;
-
-// === SILABOS: icono + color por tipo de categoría del juego ===
-// Cada tiempo verbal tiene SUS propias categorías. Mapeamos cada typeMatch a su
-// icono/color. Si un tipo no tiene icono SVG propio, se conserva el emoji original
-// del nombre (que ya es específico y correcto) y solo se aplica color neutro.
-function _tipoCategoria(typeMatch){
-  const t = (typeMatch || '').toLowerCase();
-  if (t === 'bota y sombrero' || (t.includes('bota') && t.includes('sombrero'))) return 'bs';
-  if (t === 'sombrero') return 'somb';
-  if (t === 'bota') return 'bota';
-  if (t === 'irregularidad total') return 'total';
-  if (t === 'irregularidad radical') return 'radical';
-  if (t === 'participio irregular') return 'participio';
-  if (t.includes('regular')) return 'reg';      // "Regular" / "Participio Regular"
-  return 'otro';                                 // cambio ortográfico, 3ª persona, mantiene vocal...
-}
-function decorarCategoria(nombre, typeMatch){
-  const tipo = _tipoCategoria(typeMatch);
-  // Solo estos tipos tienen icono SVG propio y fiel a la infografía:
-  const iconMap = {
-    bota:'cat-bota',
-    somb:'cat-somb',
-    bs:'cat-bs',
-    total:'cat-alien',      // 👽 irregularidad total
-    radical:'cat-radical',  // ✨ raíz/estrella → irregularidad radical (NO regular)
-    reg:'cat-check'         // ✅ regular
-  };
-  const iconId = iconMap[tipo];
-  if (iconId){
-    // Quitar emojis del nombre y poner el icono SVG
-    const limpio = (nombre || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{2700}-\u{27BF}\uFE0F\u{1F300}-\u{1F9FF}]/gu, '').trim();
-    return `<svg class="catico" viewBox="0 0 24 24"><use href="#${iconId}"/></svg><span>${limpio}</span>`;
-  }
-  // Sin icono propio: conservamos el nombre con su emoji original (correcto por tiempo)
-  return `<span class="cat-emoji">${nombre}</span>`;
-}
-function claseCategoria(typeMatch){
-  return 'dz-' + _tipoCategoria(typeMatch);
-}
-if (typeof window !== 'undefined'){ window.decorarCategoria = decorarCategoria; window.claseCategoria = claseCategoria; }
-
-// === SILABOS: fila ancha (a lo largo) para selectores de tiempo ===
-// Ejemplo representativo por tiempo (hablar) como descripción breve y útil.
-const _ejemploTiempo = {
-  'presente':'yo hablo, tú hablas…',
-  'pretérito perfecto':'yo he hablado…',
-  'pretérito indefinido':'yo hablé, tú hablaste…',
-  'pretérito imperfecto':'yo hablaba…',
-  'pluscuamperfecto':'yo había hablado…',
-  'futuro':'yo hablaré…',
-  'condicional':'yo hablaría…',
-  'presente de subjuntivo':'que yo hable…',
-  'imperfecto de subjuntivo':'que yo hablara…',
-  'pluscuamperfecto de subjuntivo':'que yo hubiera hablado…'
-};
-function crearRowTiempo(tiempo, accent, onClick){
-  const titulo = tiempo.charAt(0).toUpperCase() + tiempo.slice(1);
-  const desc = _ejemploTiempo[tiempo.toLowerCase()] || '';
-  const btn = document.createElement('button');
-  btn.className = 'row-card';
-  btn.style.setProperty('--accent', accent);
-  btn.innerHTML = `
-    <span class="icwrap"><svg class="ico" viewBox="0 0 24 24"><use href="#i-clock"/></svg></span>
-    <span class="txt"><h3>${titulo}</h3>${desc ? `<p>${desc}</p>` : ''}</span>
-  `;
-  if (typeof onClick === 'function') btn.addEventListener('click', onClick);
-  return btn;
-}
-if (typeof window !== 'undefined') window.crearRowTiempo = crearRowTiempo;
-
-
 // --- Variables Globales ---
 
 let puntuacion = 0; // Puntuación actual del usuario.
@@ -127,7 +37,7 @@ let respuestasUsuarioComoEraOFue = [];
 let shuffledPreguntasComoEraOFue = [];
 // Array que almacena los tiempos verbales que el usuario ha seleccionado para practicar.
 // Se inicializa con todos los tiempos por defecto.
-let tiemposSeleccionadosUsuario = ["presente"];
+let tiemposSeleccionadosUsuario = ["presente", "pretérito perfecto", "indefinido", "imperfecto", "pluscuamperfecto", "futuro", "condicional"];
 // --- NUEVAS VARIABLES DE ESTADO PARA LA SECCIÓN DE IRREGULARIDADES ---
 let currentSelectedTheoryTime = null; // Almacena el tiempo verbal seleccionado en la sección de teoría de irregularidades.
 let currentSelectedBroadCategory = null; // Almacena la categoría amplia de irregularidad seleccionada (ej. "Bota", "Sombrero").
@@ -185,21 +95,21 @@ const tiempoKeyMap = {
 };
 // Mapeo de tiempos verbales a colores hexadecimales para indicar dificultad
 const tiempoDificultadColores = {
-    // Nivel Básico (Azul claro: rgba(255,255,255,0.045))
-    "presente": { bg: "rgba(255,255,255,0.045)", hoverBg: "rgba(255,255,255,0.07)" }, // Un azul ligeramente más oscuro para hover
-    "pretérito perfecto": { bg: "rgba(255,255,255,0.045)", hoverBg: "rgba(255,255,255,0.07)" },
-    "pretérito indefinido": { bg: "rgba(255,255,255,0.045)", hoverBg: "rgba(255,255,255,0.07)" },
-    "pretérito imperfecto": { bg: "rgba(255,255,255,0.045)", hoverBg: "rgba(255,255,255,0.07)" },
+    // Nivel Básico (Azul claro: #a7c4fa)
+    "presente": { bg: "#a7c4fa", hoverBg: "#8eb2f7" }, // Un azul ligeramente más oscuro para hover
+    "pretérito perfecto": { bg: "#a7c4fa", hoverBg: "#8eb2f7" },
+    "pretérito indefinido": { bg: "#a7c4fa", hoverBg: "#8eb2f7" },
+    "pretérito imperfecto": { bg: "#a7c4fa", hoverBg: "#8eb2f7" },
 
-    // Nivel Intermedio (Gris medio: #9A9AB0)
-    "futuro": { bg: "rgba(255,255,255,0.10)", hoverBg: "#9A9AB0" }, // Un gris ligeramente más oscuro para hover
-    "condicional": { bg: "rgba(255,255,255,0.10)", hoverBg: "#9A9AB0" },
-    "pluscuamperfecto": { bg: "rgba(255,255,255,0.10)", hoverBg: "#9A9AB0" },
-    "presente de subjuntivo": { bg: "rgba(255,255,255,0.10)", hoverBg: "#9A9AB0" },
+    // Nivel Intermedio (Gris medio: #a6a6a6)
+    "futuro": { bg: "#a6a6a6", hoverBg: "#8c8c8c" }, // Un gris ligeramente más oscuro para hover
+    "condicional": { bg: "#a6a6a6", hoverBg: "#8c8c8c" },
+    "pluscuamperfecto": { bg: "#a6a6a6", hoverBg: "#8c8c8c" },
+    "presente de subjuntivo": { bg: "#a6a6a6", hoverBg: "#8c8c8c" },
 
-    // Nivel Avanzado (Rosa vibrante: #FF2DA6)
-    "imperfecto de subjuntivo": { bg: "#FF2DA6", hoverBg: "#C81E86" }, // Un rosa ligeramente más oscuro para hover
-    "pluscuamperfecto de subjuntivo": { bg: "#FF2DA6", hoverBg: "#C81E86" }
+    // Nivel Avanzado (Rosa vibrante: #ff66c4)
+    "imperfecto de subjuntivo": { bg: "#ff66c4", hoverBg: "#e050a8" }, // Un rosa ligeramente más oscuro para hover
+    "pluscuamperfecto de subjuntivo": { bg: "#ff66c4", hoverBg: "#e050a8" }
 };
 
 // Estilos uniformes para los botones de tiempo y de Regulares/Irregulares
@@ -218,7 +128,7 @@ const uniformButtonStyles = {
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.3s ease-in-out',
     transform: 'scale(1)',
-    color: '#0E0E1A' // Color del texto del botón
+    color: '#222222' // Color del texto del botón
 };
 
     // Función auxiliar para crear y añadir botones a un contenedor de fila
@@ -268,11 +178,11 @@ function displayRegularVerbsExplanation(tiempoKey) {
         maxWidth: '800px',
         margin: '20px auto',
         padding: '25px',
-        backgroundColor: 'var(--color-background-secondary, #0E0E1A)',
+        backgroundColor: 'var(--color-background-secondary, #333333)',
         borderRadius: '10px',
         boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
         textAlign: 'left',
-        color: 'var(--color-text-light, #EDEDF5)'
+        color: 'var(--color-text-light, #F5F5DC)'
     });
 
     const explicacionTiempo = explicacionesIrregularidadesTiempos[tiempoKey];
@@ -292,7 +202,7 @@ function displayRegularVerbsExplanation(tiempoKey) {
         const errorTitle = document.createElement('h2');
         errorTitle.textContent = `Explicación de Verbos Regulares para ${capitalizeFirstLetter(tiempoKey)} (No Disponible)`;
         Object.assign(errorTitle.style, {
-            color: 'var(--color-primary, #39FF14)',
+            color: 'var(--color-primary, #4CAF50)',
             marginBottom: '20px',
             textAlign: 'center'
         });
@@ -313,7 +223,7 @@ function displayRegularVerbsExplanation(tiempoKey) {
     const title = document.createElement('h2');
     title.textContent = data.nombre; // Ahora usamos 'nombre' como el título
     Object.assign(title.style, {
-        color: 'var(--color-primary, #39FF14)',
+        color: 'var(--color-primary, #4CAF50)',
         marginBottom: '20px',
         textAlign: 'center'
     });
@@ -336,7 +246,7 @@ function displayRegularVerbsExplanation(tiempoKey) {
         const examplesTitle = document.createElement('h3');
         examplesTitle.textContent = "Ejemplos de conjugación:";
         Object.assign(examplesTitle.style, {
-            color: 'var(--color-primary, #39FF14)',
+            color: 'var(--color-primary, #4CAF50)',
             marginTop: '20px',
             marginBottom: '10px'
         });
@@ -362,13 +272,13 @@ function displayRegularVerbsExplanation(tiempoKey) {
 
             if (processedConjugatedString.trim() !== '') {
                 listItem.innerHTML = `
-                    <strong style="color: var(--color-primary, #39FF14);">${capitalizeFirstLetter(example.verbo)}:</strong>
-                    <span style="color: var(--color-text-light, #EDEDF5);">${processedConjugatedString}</span>
+                    <strong style="color: var(--color-primary, #4CAF50);">${capitalizeFirstLetter(example.verbo)}:</strong>
+                    <span style="color: var(--color-text-light, #F5F5DC);">${processedConjugatedString}</span>
                 `;
             } else {
                 listItem.innerHTML = `
-                    <strong style="color: var(--color-primary, #39FF14);">${capitalizeFirstLetter(example.verbo)}:</strong>
-                    <span style="color: var(--color-text-light, #EDEDF5);">[Conjugación no disponible para este verbo o tiempo]</span>
+                    <strong style="color: var(--color-primary, #4CAF50);">${capitalizeFirstLetter(example.verbo)}:</strong>
+                    <span style="color: var(--color-text-light, #F5F5DC);">[Conjugación no disponible para este verbo o tiempo]</span>
                 `;
                 console.warn(`No se pudo obtener la conjugación para el ejemplo de verbo regular: ${example.verbo} en ${tiempoKey}`);
             }
@@ -388,16 +298,9 @@ function displayRegularVerbsExplanation(tiempoKey) {
 // Asegúrate de que esta es la función createBackButtonForRegularExplanation en tu script3.js
 function createBackButtonForRegularExplanation() {
     console.log('script3.js:259 createBackButtonForRegularExplanation() iniciada.');
-
     const backButton = document.createElement('button');
     backButton.textContent = 'Volver a Elección';
-    backButton.classList.add('back-button'); // Si tienes una clase CSS para estilos
-    backButton.style.marginTop = '30px';
-    backButton.style.display = 'block';
-    backButton.style.marginRight = 'auto';
-    backButton.style.marginLeft = 'auto';
-
-    // *** CAMBIOS AQUÍ ***
+    backButton.className = 'btn-back';
     backButton.addEventListener('click', () => {
         console.log('script3.js:274 Botón "Volver a la elección" clicado. Intentando llamar a displayRegularIrregularChoice().');
         // AÑADIMOS ESTOS LOGS CRÍTICOS:
@@ -420,7 +323,7 @@ function processConjugatedStringForDisplay(originalString) {
     if (match) {
         const verb = match[1];
         const conjugation = match[2];
-        return `<strong style="color: #00C8FF;">${verb}</strong> (<span style="color: hotpink;">${conjugation}</span>)`;
+        return `<strong style="color: #66ccff;">${verb}</strong> (<span style="color: hotpink;">${conjugation}</span>)`;
     }
     return originalString;
 }
@@ -540,8 +443,7 @@ function getConjugationExamples(verbName, personsArray, tense) {
 // Ahora, esta función servirá como el punto de entrada para la navegación jerárquica.
 function populateIrregularVerbsSection() {
     console.log('populateIrregularVerbsSection() llamada.');
-    limpiarContenedor();
-    setGameBackground(false); // <--- ¡AÑADE ESTA LÍNEA AQUÍ!
+    limpiarContenedor(); // <--- ¡AÑADE ESTA LÍNEA AQUÍ!
 
     // Reiniciar el estado de navegación al entrar en la sección principal de irregularidades
     currentSelectedTheoryTime = null;
@@ -569,115 +471,58 @@ function populateIrregularVerbsSection() {
 
 
 function displayTimeSelection() {
-    limpiarContenedor(); // Esto limpiará appContainer completamente.
+    // NO llamamos a limpiarContenedor() aquí porque populateIrregularVerbsSection
+    // ya lo hizo y acaba de crear el #irregularVerbsList que necesitamos.
+    // Si se llama directamente (sin populateIrregularVerbsSection), sí limpiamos.
+    if (!document.getElementById('irregularVerbsList')) {
+        limpiarContenedor();
+    }
 
     const title = document.createElement('h2');
+    title.className = 'section-title';
     title.textContent = 'Selecciona un Tiempo Verbal';
     appContainer.appendChild(title);
 
-    // *******************************************************************
-    // ¡¡¡CORRECCIÓN CRÍTICA!!!
-    // Siempre re-crear y añadir irregularVerbsListContainer
-    // Esto asegura que el contenedor principal de los botones siempre esté en el DOM.
-    // *******************************************************************
     irregularVerbsListContainer = document.createElement('div');
     irregularVerbsListContainer.id = 'irregularVerbsList';
     appContainer.appendChild(irregularVerbsListContainer);
-    // Ya no necesitamos innerHTML = ''; porque es un div recién creado y vacío.
-    // *******************************************************************
-
 
     const allButtonsWrapper = document.createElement('div');
-    allButtonsWrapper.style.display = 'flex';
-    allButtonsWrapper.style.flexDirection = 'column';
-    allButtonsWrapper.style.gap = '1.5rem';
-    allButtonsWrapper.style.maxWidth = '800px';
-    allButtonsWrapper.style.margin = '0 auto';
+    allButtonsWrapper.className = 'tiempos-nivel-wrapper';
     irregularVerbsListContainer.appendChild(allButtonsWrapper);
 
     const basicTiempos = ["presente", "pretérito perfecto", "pretérito indefinido", "pretérito imperfecto"];
     const intermediateTiempos = ["futuro", "condicional", "pluscuamperfecto", "presente de subjuntivo"];
     const advancedTiempos = ["imperfecto de subjuntivo", "pluscuamperfecto de subjuntivo"];
 
-    // Fila de Nivel Básico (4 botones)
-    // Estas const para basicRowContainer etc., están bien porque siempre se adjuntan
-    // a allButtonsWrapper, que a su vez está en el recién creado irregularVerbsListContainer.
-    const basicRowContainer = document.createElement('div');
-    basicRowContainer.classList.add('time-row-group');
-    basicRowContainer.style.display = 'grid';
-    basicRowContainer.style.gap = '1rem';
-    const mediaQueryBasicMd = window.matchMedia('(min-width: 768px)');
-    const adjustBasicGrid = () => {
-        basicRowContainer.style.gridTemplateColumns = mediaQueryBasicMd.matches ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)';
-        if (!mediaQueryBasicMd.matches && window.matchMedia('(max-width: 639px)').matches) {
-            basicRowContainer.style.gridTemplateColumns = 'repeat(1, 1fr)';
-        }
+    const mkRow = (tiempos, levelClass) => {
+        const row = document.createElement('div');
+        row.className = `tiempo-row ${levelClass}`;
+        tiempos.forEach(t => {
+            const btn = document.createElement('button');
+            btn.className = `btn-tiempo btn-tiempo--${levelClass}`;
+            btn.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+            row.appendChild(btn);
+        });
+        return row;
     };
-    adjustBasicGrid();
-    mediaQueryBasicMd.addEventListener('change', adjustBasicGrid);
-    createAndAppendButtons(basicTiempos, basicRowContainer, { bg: "rgba(255,255,255,0.045)", hoverBg: "rgba(255,255,255,0.07)" });
-    allButtonsWrapper.appendChild(basicRowContainer);
 
-    // Fila de Nivel Intermedio (4 botones)
-    const intermediateRowContainer = document.createElement('div');
-    intermediateRowContainer.classList.add('time-row-group');
-    intermediateRowContainer.style.display = 'grid';
-    intermediateRowContainer.style.gap = '1rem';
-    const mediaQueryIntermediateMd = window.matchMedia('(min-width: 768px)');
-    const adjustIntermediateGrid = () => {
-        intermediateRowContainer.style.gridTemplateColumns = mediaQueryIntermediateMd.matches ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)';
-        if (!mediaQueryIntermediateMd.matches && window.matchMedia('(max-width: 639px)').matches) {
-            intermediateRowContainer.style.gridTemplateColumns = 'repeat(1, 1fr)';
-        }
-    };
-    adjustIntermediateGrid();
-    mediaQueryIntermediateMd.addEventListener('change', adjustIntermediateGrid);
-    createAndAppendButtons(intermediateTiempos, intermediateRowContainer, { bg: "rgba(255,255,255,0.10)", hoverBg: "#9A9AB0" });
-    allButtonsWrapper.appendChild(intermediateRowContainer);
+    allButtonsWrapper.appendChild(mkRow(basicTiempos, 'basico'));
+    allButtonsWrapper.appendChild(mkRow(intermediateTiempos, 'intermedio'));
+    allButtonsWrapper.appendChild(mkRow(advancedTiempos, 'avanzado'));
 
-    // Fila de Nivel Avanzado (2 botones)
-    const advancedRowContainer = document.createElement('div');
-    advancedRowContainer.classList.add('time-row-group');
-    advancedRowContainer.style.display = 'grid';
-    advancedRowContainer.style.gap = '1rem';
-    const mediaQueryAdvancedMd = window.matchMedia('(min-width: 768px)');
-    const adjustAdvancedGrid = () => {
-        if (mediaQueryAdvancedMd.matches) {
-            advancedRowContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
-            advancedRowContainer.style.maxWidth = '400px';
-            advancedRowContainer.style.margin = '0 auto';
-        } else if (window.matchMedia('(min-width: 640px)').matches) {
-            advancedRowContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
-            advancedRowContainer.style.maxWidth = '400px';
-            advancedRowContainer.style.margin = '0 auto';
-        } else {
-            advancedRowContainer.style.gridTemplateColumns = 'repeat(1, 1fr)';
-            advancedRowContainer.style.maxWidth = '100%';
-            advancedRowContainer.style.margin = '0';
-        }
-    };
-    adjustAdvancedGrid();
-    mediaQueryAdvancedMd.addEventListener('change', adjustAdvancedGrid);
-    window.matchMedia('(min-width: 640px)').addEventListener('change', adjustAdvancedGrid);
-    window.matchMedia('(max-width: 639px)').addEventListener('change', adjustAdvancedGrid);
-    createAndAppendButtons(advancedTiempos, advancedRowContainer, { bg: "#FF2DA6", hoverBg: "#C81E86" });
-    allButtonsWrapper.appendChild(advancedRowContainer);
-
-   
-    // Botón para volver al menú de Irregularidades"
-    const backToTheoryMenuBtn = document.createElement('button');
-    backToTheoryMenuBtn.textContent = '↩️ Volver a Irregularidades';
-    Object.assign(backToTheoryMenuBtn.style, {
-        marginTop: '2rem', backgroundColor: '#9A9AB0', color: '#FFFFFF', fontWeight: 'bold',
-        padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
-        marginLeft: 'auto', marginRight: 'auto', display: 'block'
+    allButtonsWrapper.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+            currentSelectedTheoryTime = button.textContent.toLowerCase();
+            displayRegularIrregularChoice();
+        });
     });
-    backToTheoryMenuBtn.onmouseover = () => { backToTheoryMenuBtn.style.backgroundColor = 'rgba(255,255,255,0.10)'; backToTheoryMenuBtn.style.transform = 'scale(1.05)'; };
-    backToTheoryMenuBtn.onmouseout = () => { backToTheoryMenuBtn.style.backgroundColor = '#9A9AB0'; backToTheoryMenuBtn.style.transform = 'scale(1)'; };
-    backToTheoryMenuBtn.addEventListener('click', mostrarVerbosRegularesIrregulares);
-    backToTheoryMenuBtn.classList.add('back-button');
-    irregularVerbsListContainer.appendChild(backToTheoryMenuBtn);
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← Irregularidades';
+    backBtn.className = 'btn-back';
+    backBtn.addEventListener('click', mostrarVerbosRegularesIrregulares);
+    irregularVerbsListContainer.appendChild(backBtn);
 }
 
 // Función para mostrar las categorías amplias de irregularidades (o los grupos específicos para Presente)
@@ -703,7 +548,7 @@ function displayBroadCategories() {
     const title = document.createElement('h2');
     title.style.fontSize = '1.875rem'; // text-3xl
     title.style.fontWeight = 'bold'; // font-bold
-    title.style.color = '#EDEDF5'; // Color del título
+    title.style.color = '#a7c4fa'; // Color del título
     title.style.marginBottom = '2rem'; // mb-8
     title.style.textAlign = 'center'; // text-center
     title.textContent = `Irregularidades del ${capitalizeFirstLetter(currentSelectedTheoryTime)}`; // Título más general
@@ -717,7 +562,7 @@ function displayBroadCategories() {
 
     if (irregularidadesDelTiempo.length === 0) {
         const noResults = document.createElement('p');
-        noResults.style.color = '#9A9AB0';
+        noResults.style.color = 'gray';
         noResults.style.textAlign = 'center';
         noResults.textContent = `No hay irregularidades específicas definidas para el ${capitalizeFirstLetter(currentSelectedTheoryTime)}.`;
         container.appendChild(noResults);
@@ -759,9 +604,9 @@ function displayBroadCategories() {
         button.style.flexDirection = 'column';
         button.style.alignItems = 'center';
         button.style.justifyContent = 'center';
-        button.style.backgroundColor = 'rgba(255,255,255,0.045)';
-        button.onmouseover = () => { button.style.backgroundColor = 'rgba(255,255,255,0.07)'; button.style.transform = 'scale(1.05)'; };
-        button.onmouseout = () => { button.style.backgroundColor = 'rgba(255,255,255,0.045)'; button.style.transform = 'scale(1)'; };
+        button.style.backgroundColor = '#a7c4fa';
+        button.onmouseover = () => { button.style.backgroundColor = '#8eb2f7'; button.style.transform = 'scale(1.05)'; };
+        button.onmouseout = () => { button.style.backgroundColor = '#a7c4fa'; button.style.transform = 'scale(1)'; };
 
         button.addEventListener('click', () => {
             displayIrregularityDetail(tipoIrregularidad.nombre);
@@ -776,17 +621,9 @@ function displayBroadCategories() {
 // Helper para crear botones de volver consistente
 function createBackButton(text, onClickHandler) {
     const backBtn = document.createElement('button');
-    Object.assign(backBtn.style, {
-        marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.10)', color: '#FFFFFF', fontWeight: 'bold',
-        padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
-        marginLeft: 'auto', marginRight: 'auto', display: 'block'
-    });
+    backBtn.className = 'btn-back';
     backBtn.textContent = text;
-    backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#9A9AB0'; backBtn.style.transform = 'scale(1.05)'; };
-    backBtn.onmouseout = () => { backBtn.style.backgroundColor = 'rgba(255,255,255,0.10)'; backBtn.style.transform = 'scale(1)'; };
     backBtn.addEventListener('click', onClickHandler);
-    backBtn.classList.add('back-button'); // Añade una clase para posible estilado
     return backBtn;
 }
 // NUEVA FUNCIÓN: Muestra los 4 grupos de irregularidades del Presente
@@ -797,7 +634,7 @@ function displayPresenteIrregularGroups() {
     const title = document.createElement('h2');
     title.style.fontSize = '1.875rem'; // text-3xl
     title.style.fontWeight = 'bold'; // font-bold
-    title.style.color = '#EDEDF5'; // Color del título
+    title.style.color = '#a7c4fa'; // Color del título
     title.style.marginBottom = '2rem'; // mb-8
     title.style.textAlign = 'center'; // text-center
     title.textContent = 'Grupos de Irregularidades en Presente';
@@ -807,7 +644,7 @@ function displayPresenteIrregularGroups() {
 
     if (!grupos || grupos.length === 0) {
         const noGroups = document.createElement('p');
-        noGroups.style.color = '#9A9AB0';
+        noGroups.style.color = 'gray';
         noGroups.style.textAlign = 'center';
         noGroups.textContent = 'No hay grupos de irregularidades definidos para el Presente.';
         container.appendChild(noGroups);
@@ -844,7 +681,7 @@ function displayPresenteIrregularGroups() {
         const descriptionP = document.createElement('p');
         descriptionP.textContent = grupo.descripcion;
         descriptionP.style.fontSize = '0.9rem';
-        descriptionP.style.color = '#C4C4D6'; // Color para la descripción
+        descriptionP.style.color = '#4a4a4a'; // Color para la descripción
         descriptionP.style.marginTop = '0.25rem';
         descriptionP.style.textAlign = 'center';
 
@@ -857,9 +694,9 @@ function displayPresenteIrregularGroups() {
         button.style.flexDirection = 'column';
         button.style.alignItems = 'center';
         button.style.justifyContent = 'center';
-        button.style.backgroundColor = 'rgba(255,255,255,0.045)'; // Color para los botones de grupo
-        button.onmouseover = () => { button.style.backgroundColor = 'rgba(255,255,255,0.07)'; button.style.transform = 'scale(1.05)'; };
-        button.onmouseout = () => { button.style.backgroundColor = 'rgba(255,255,255,0.045)'; button.style.transform = 'scale(1)'; };
+        button.style.backgroundColor = '#a7c4fa'; // Color para los botones de grupo
+        button.onmouseover = () => { button.style.backgroundColor = '#8eb2f7'; button.style.transform = 'scale(1.05)'; };
+        button.onmouseout = () => { button.style.backgroundColor = '#a7c4fa'; button.style.transform = 'scale(1)'; };
 
         button.addEventListener('click', () => {
             // currentSelectedBroadCategory = grupo.nombre; // Podrías usar esto para futuros niveles
@@ -880,7 +717,7 @@ function displayPresenteSubCategories(groupName) {
     const title = document.createElement('h2');
     title.style.fontSize = '1.875rem';
     title.style.fontWeight = 'bold';
-    title.style.color = '#EDEDF5';
+    title.style.color = '#a7c4fa';
     title.style.marginBottom = '2rem';
     title.style.textAlign = 'center';
     title.textContent = `Irregularidades de "${groupName}" en Presente`; // Título del grupo
@@ -892,7 +729,7 @@ function displayPresenteSubCategories(groupName) {
     if (!selectedGroup || !selectedGroup.tipos || selectedGroup.tipos.length === 0) {
         const noDataMsg = document.createElement('p');
         noDataMsg.textContent = `No se encontraron sub-categorías para el grupo "${groupName}".`;
-        noDataMsg.style.color = '#9A9AB0';
+        noDataMsg.style.color = 'gray';
         noDataMsg.style.textAlign = 'center';
         container.appendChild(noDataMsg);
         container.appendChild(createBackButton('↩️ Volver a Grupos', () => displayPresenteIrregularGroups()));
@@ -936,9 +773,9 @@ function displayPresenteSubCategories(groupName) {
             button.style.flexDirection = 'column';
             button.style.alignItems = 'center';
             button.style.justifyContent = 'center';
-            button.style.backgroundColor = 'rgba(255,255,255,0.045)'; // Color para los botones de sub-grupo
-            button.onmouseover = () => { button.style.backgroundColor = 'rgba(255,255,255,0.07)'; button.style.transform = 'scale(1.05)'; };
-            button.onmouseout = () => { button.style.backgroundColor = 'rgba(255,255,255,0.045)'; button.style.transform = 'scale(1)'; };
+            button.style.backgroundColor = '#a7c4fa'; // Color para los botones de sub-grupo
+            button.onmouseover = () => { button.style.backgroundColor = '#8eb2f7'; button.style.transform = 'scale(1.05)'; };
+            button.onmouseout = () => { button.style.backgroundColor = '#a7c4fa'; button.style.transform = 'scale(1)'; };
 
             button.addEventListener('click', () => {
                 // currentSelectedTheoryTime ya debe ser 'presente' aquí
@@ -955,78 +792,48 @@ function displayPresenteSubCategories(groupName) {
 
 // Función para mostrar la opción entre verbos regulares e irregulares para el tiempo seleccionado
 function displayRegularIrregularChoice() {
-    limpiarContenedor(); // Siempre limpia el appContainer al inicio de esta vista.
+    limpiarContenedor();
 
-    // Asegúrate de que irregularVerbsListContainer exista y esté en el DOM.
-    // Si es la primera vez o si fue desconectado, lo crea/re-adjunta.
     if (!irregularVerbsListContainer) {
         irregularVerbsListContainer = document.createElement('div');
         irregularVerbsListContainer.id = 'irregularVerbsList';
     }
-    appContainer.appendChild(irregularVerbsListContainer); // Re-adjunta el contenedor al DOM principal.
-
-    irregularVerbsListContainer.innerHTML = ''; // Limpia el contenido previo de irregularVerbsListContainer.
+    appContainer.appendChild(irregularVerbsListContainer);
+    irregularVerbsListContainer.innerHTML = '';
 
     const title = document.createElement('h2');
-    Object.assign(title.style, {
-        fontSize: '1.875rem', // text-3xl
-        fontWeight: 'bold', // font-bold
-        color: 'rgba(255,255,255,0.045)', // Color del título
-        marginBottom: '2rem', // mb-8
-        textAlign: 'center' // text-center
-    });
+    title.className = 'section-title';
     title.textContent = `Opciones para ${capitalizeFirstLetter(currentSelectedTheoryTime)}`;
     irregularVerbsListContainer.appendChild(title);
 
-    const buttonsContainer = document.createElement('div');
-    Object.assign(buttonsContainer.style, {
-        display: 'grid',
-        gap: '1rem',
-        maxWidth: '400px', // Ancho para 2 botones grandes con gap
-        margin: '0 auto' // Centrar el contenedor
-    });
+    const grid = document.createElement('div');
+    grid.className = 'home-grid';
+    grid.style.maxWidth = '420px';
+    grid.style.margin = '0 0 20px 0';
 
-    const mediaQuerySm = window.matchMedia('(min-width: 640px)');
-    const adjustGridColumns = () => {
-        buttonsContainer.style.gridTemplateColumns = mediaQuerySm.matches ? 'repeat(2, 1fr)' : 'repeat(1, 1fr)';
-    };
-    adjustGridColumns();
-    mediaQuerySm.addEventListener('change', adjustGridColumns);
-    irregularVerbsListContainer.appendChild(buttonsContainer);
-
-    // Botón de "Irregularidades"
     const irregularVerbsButton = document.createElement('button');
-    irregularVerbsButton.textContent = 'Irregularidades';
-    Object.assign(irregularVerbsButton.style, uniformButtonStyles);
-    irregularVerbsButton.style.backgroundColor = '#FF2DA6'; // Rosa
-    irregularVerbsButton.onmouseover = () => { irregularVerbsButton.style.backgroundColor = '#C81E86'; regularVerbsButton.style.transform = 'scale(1.05)'; };
-    irregularVerbsButton.onmouseout = () => { irregularVerbsButton.style.backgroundColor = '#FF2DA6'; regularVerbsButton.style.transform = 'scale(1)'; };
-    irregularVerbsButton.addEventListener('click', () => displayBroadCategories()); // Llama a displayBroadCategories para el tiempo actual
-    buttonsContainer.appendChild(irregularVerbsButton);
+    irregularVerbsButton.className = 'home-card home-card--pink';
+    irregularVerbsButton.innerHTML = `
+        <span class="home-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="#ff85b0"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></span>
+        <span class="home-card__label">Irregulares</span>
+        <span class="home-card__sub">Tipos de irregularidad</span>`;
+    irregularVerbsButton.addEventListener('click', () => displayBroadCategories());
 
-
-    // Botón de "Verbos Regulares"
     const regularVerbsButton = document.createElement('button');
-    regularVerbsButton.textContent = 'Regulares';
-    Object.assign(regularVerbsButton.style, uniformButtonStyles);
-    regularVerbsButton.style.backgroundColor = 'rgba(255,255,255,0.07)'; // Azul claro
-    regularVerbsButton.onmouseover = () => { regularVerbsButton.style.backgroundColor = 'rgba(0,200,255,0.14)'; regularVerbsButton.style.transform = 'scale(1.05)'; };
-    regularVerbsButton.onmouseout = () => { regularVerbsButton.style.backgroundColor = 'rgba(255,255,255,0.07)'; regularVerbsButton.style.transform = 'scale(1)'; };
+    regularVerbsButton.className = 'home-card home-card--blue';
+    regularVerbsButton.innerHTML = `
+        <span class="home-card__icon"><span style="font-size:1.8em">✅</span></span>
+        <span class="home-card__label">Regulares</span>
+        <span class="home-card__sub">Formación regular</span>`;
     regularVerbsButton.addEventListener('click', () => displayRegularVerbsExplanation(currentSelectedTheoryTime));
-    buttonsContainer.appendChild(regularVerbsButton);
 
+    grid.appendChild(irregularVerbsButton);
+    grid.appendChild(regularVerbsButton);
+    irregularVerbsListContainer.appendChild(grid);
 
-    // Botón para volver a la selección de Tiempos Verbales
     const backButton = document.createElement('button');
-    backButton.textContent = '↩️ Volver a Tiempos Verbales';
-    Object.assign(backButton.style, {
-        marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.10)', color: '#FFFFFF', fontWeight: 'bold',
-        padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
-        marginLeft: 'auto', marginRight: 'auto', display: 'block'
-    });
-    backButton.onmouseover = () => { backButton.style.backgroundColor = '#9A9AB0'; backButton.style.transform = 'scale(1.05)'; };
-    backButton.onmouseout = () => { backButton.style.backgroundColor = 'rgba(255,255,255,0.10)'; backButton.style.transform = 'scale(1)'; };
+    backButton.className = 'btn-back';
+    backButton.textContent = '← Tiempos Verbales';
     backButton.addEventListener('click', displayTimeSelection);
     irregularVerbsListContainer.appendChild(backButton);
 }
@@ -1096,14 +903,14 @@ function displayIrregularityDetail(detailedTypeName) {
             const title = document.createElement('h2');
             title.style.fontSize = '1.875rem';
             title.style.fontWeight = 'bold';
-            title.style.color = '#EDEDF5';
+            title.style.color = '#a7c4fa';
             title.style.marginBottom = '2rem';
             title.style.textAlign = 'center';
             title.textContent = `${tipoIrregularidad.nombre} del ${capitalizeFirstLetter(currentSelectedTheoryTime)}`;
             theoryContent.appendChild(title);
 
             const contentDiv = document.createElement('div');
-            contentDiv.style.backgroundColor = 'rgba(255,255,255,0.045)';
+            contentDiv.style.backgroundColor = 'white'; // Fondo blanco
             contentDiv.style.padding = '25px';
             contentDiv.style.borderRadius = '12px';
             contentDiv.style.margin = '20px auto';
@@ -1111,7 +918,7 @@ function displayIrregularityDetail(detailedTypeName) {
             contentDiv.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.15)';
             contentDiv.style.textAlign = 'left';
             contentDiv.style.lineHeight = '1.6';
-            contentDiv.style.color = '#EDEDF5'; // Texto oscuro
+            contentDiv.style.color = '#333'; // Texto oscuro
 
             const descriptionElement = document.createElement('p');
             descriptionElement.style.marginBottom = '20px';
@@ -1120,7 +927,7 @@ function displayIrregularityDetail(detailedTypeName) {
 
             if (tipoIrregularidad.verbosEjemplo && tipoIrregularidad.verbosEjemplo.length > 0) {
                 const conjugationsSectionBox = document.createElement('div');
-                conjugationsSectionBox.style.backgroundColor = 'rgba(255,255,255,0.045)'; // Fondo oscuro
+                conjugationsSectionBox.style.backgroundColor = '#2a2a2a'; // Fondo oscuro
                 conjugationsSectionBox.style.padding = '10px 15px';
                 conjugationsSectionBox.style.borderRadius = '8px';
                 conjugationsSectionBox.style.marginBottom = '10px';
@@ -1135,7 +942,7 @@ function displayIrregularityDetail(detailedTypeName) {
                 const ulElement = document.createElement('ul');
                 ulElement.style.listStyleType = 'none';
                 ulElement.style.paddingLeft = '0';
-                ulElement.style.color = '#EDEDF5'; // Color claro para las listas
+                ulElement.style.color = '#D4EEFF'; // Color claro para las listas
 
                 tipoIrregularidad.verbosEjemplo.forEach(example => {
                     const listItem = document.createElement('li');
@@ -1154,20 +961,20 @@ function displayIrregularityDetail(detailedTypeName) {
             const backBtn = document.createElement('button');
             backBtn.textContent = '↩️ Volver a Irregularidades';
             Object.assign(backBtn.style, {
-                marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.10)', color: '#FFFFFF', fontWeight: 'bold',
+                marginTop: '2rem', backgroundColor: '#a6a6a6', color: '#FFFFFF', fontWeight: 'bold',
                 padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
                 marginLeft: 'auto', marginRight: 'auto', display: 'block'
             });
-            backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#9A9AB0'; backBtn.style.transform = 'scale(1.05)'; };
-            backBtn.onmouseout = () => { backBtn.style.backgroundColor = 'rgba(255,255,255,0.10)'; backBtn.style.transform = 'scale(1)'; };
+            backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#8c8c8c'; backBtn.style.transform = 'scale(1.05)'; };
+            backBtn.onmouseout = () => { backBtn.style.backgroundColor = '#a6a6a6'; backBtn.style.transform = 'scale(1)'; };
             backBtn.addEventListener('click', () => {
                 displayBroadCategories(); // Siempre vuelve a las categorías amplias
             });
             theoryContent.appendChild(backBtn);
         } else {
             const errorMessage = document.createElement('p');
-            errorMessage.style.color = '#FF4D6D';
+            errorMessage.style.color = 'red';
             errorMessage.style.textAlign = 'center';
             errorMessage.textContent = `No se encontró información detallada para "${detailedTypeName}" en el tiempo "${capitalizeFirstLetter(currentSelectedTheoryTime)}".`;
             theoryContent.appendChild(errorMessage);
@@ -1175,13 +982,13 @@ function displayIrregularityDetail(detailedTypeName) {
             const backBtn = document.createElement('button');
             backBtn.textContent = '↩️ Volver';
             Object.assign(backBtn.style, {
-                marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.10)', color: '#FFFFFF', fontWeight: 'bold',
+                marginTop: '2rem', backgroundColor: '#a6a6a6', color: '#FFFFFF', fontWeight: 'bold',
                 padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                 transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
                 marginLeft: 'auto', marginRight: 'auto', display: 'block'
             });
-            backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#9A9AB0'; backBtn.style.transform = 'scale(1.05)'; };
-            backBtn.onmouseout = () => { backBtn.style.backgroundColor = 'rgba(255,255,255,0.10)'; backBtn.style.transform = 'scale(1)'; };
+            backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#8c8c8c'; backBtn.style.transform = 'scale(1.05)'; };
+            backBtn.onmouseout = () => { backBtn.style.backgroundColor = '#a6a6a6'; backBtn.style.transform = 'scale(1)'; };
             backBtn.addEventListener('click', () => {
                 displayBroadCategories();
             });
@@ -1189,7 +996,7 @@ function displayIrregularityDetail(detailedTypeName) {
         }
     } else {
         const errorMessage = document.createElement('p');
-        errorMessage.style.color = '#FF4D6D';
+        errorMessage.style.color = 'red';
         errorMessage.style.textAlign = 'center';
         errorMessage.textContent = `No se encontró información de irregularidades para el tiempo "${capitalizeFirstLetter(currentSelectedTheoryTime)}".`;
         theoryContent.appendChild(errorMessage);
@@ -1197,13 +1004,13 @@ function displayIrregularityDetail(detailedTypeName) {
         const backBtn = document.createElement('button');
         backBtn.textContent = '↩️ Volver a Tiempos';
         Object.assign(backBtn.style, {
-            marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.10)', color: '#FFFFFF', fontWeight: 'bold',
+            marginTop: '2rem', backgroundColor: '#a6a6a6', color: '#FFFFFF', fontWeight: 'bold',
             padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
             marginLeft: 'auto', marginRight: 'auto', display: 'block'
         });
-        backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#9A9AB0'; backBtn.style.transform = 'scale(1.05)'; };
-        backBtn.onmouseout = () => { backBtn.style.backgroundColor = 'rgba(255,255,255,0.10)'; backBtn.style.transform = 'scale(1)'; };
+        backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#8c8c8c'; backBtn.style.transform = 'scale(1.05)'; };
+        backBtn.onmouseout = () => { backBtn.style.backgroundColor = '#a6a6a6'; backBtn.style.transform = 'scale(1)'; };
         backBtn.addEventListener('click', () => {
             displayTimeSelection();
         });
@@ -1280,7 +1087,6 @@ function toggleAyudaIrregularidades() {
 
 // Función para mostrar las explicaciones de irregularidades de un tiempo verbal específico
 function mostrarExplicacionesIrregularidadesTiempo(tiempoVerbal) {
-    setGameBackground(false);
     console.log('--- Inicia mostrarExplicacionesIrregularidadesTiempo ---');
     console.log('Tiempo verbal recibido:', tiempoVerbal);
 
@@ -1579,19 +1385,18 @@ function mostrarMensaje(titulo, mensaje) {
     const modalContent = document.createElement('div');
     modalContent.id = 'custom-message-modal-content';
     modalContent.style.cssText = `
-        background-color: #12121E;
-        padding: 28px;
-        border-radius: 16px;
-        border: 1px solid #A855F7;
-        box-shadow: 0 0 50px rgba(168,85,247,0.4);
-        width: 90%;
-        max-width: 550px;
+        background-color: #222222; /* Fondo oscuro para todo el contenido del modal */
+        padding: 30px; /* Más padding para que sea más grande */
+        border-radius: 10px; /* Bordes redondeados, como otros elementos de la app */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
+        width: 90%; /* Ancho responsivo */
+        max-width: 550px; /* Ancho máximo para no ser demasiado grande en pantallas grandes */
         text-align: center;
-        position: relative;
-        color: #EDEDF5;
-        font-family: 'DM Sans','Inter',sans-serif;
-        line-height: 1.5;
-        animation: fadeInScale 0.3s ease-out forwards;
+        position: relative; /* Para posicionar el botón de cerrar */
+        color: white; /* Color de texto claro para contraste */
+        font-family: Arial, sans-serif; /* Puedes ajustar la fuente si tu app usa una específica */
+        line-height: 1.5; /* Espaciado de línea para mejor legibilidad */
+        animation: fadeInScale 0.3s ease-out forwards; /* Aplicará la animación definida en CSS */
     `;
 
     // 3. Crear el botón de cerrar (la "X")
@@ -1601,21 +1406,18 @@ function mostrarMensaje(titulo, mensaje) {
         position: absolute;
         top: 10px;
         right: 15px;
-        color: #9A9AB0;
+        color: #aaa;
         font-size: 30px; /* Tamaño de la X más grande */
         font-weight: bold;
         cursor: pointer;
         transition: color 0.2s ease; /* Transición suave al pasar el ratón */
     `;
     closeButton.onmouseover = () => { closeButton.style.color = '#fff'; };
-    closeButton.onmouseout = () => { closeButton.style.color = '#9A9AB0'; };
+    closeButton.onmouseout = () => { closeButton.style.color = '#aaa'; };
 
     // Función para cerrar el modal
     const closeModal = () => {
-        modalOverlay.style.animation = 'fadeOut 0.3s ease-in forwards'; // Aplicará la animación de salida
-        modalOverlay.addEventListener('animationend', () => {
-            modalOverlay.remove(); // Elimina el modal del DOM después de que termine la animación
-        }, { once: true }); // Asegura que el evento se dispare solo una vez
+        modalOverlay.remove();
     };
 
     closeButton.onclick = closeModal; // Cierra el modal al hacer clic en la "X"
@@ -1630,11 +1432,10 @@ function mostrarMensaje(titulo, mensaje) {
     const messageTitle = document.createElement('h3');
     messageTitle.textContent = titulo;
     messageTitle.style.cssText = `
-        font-size: 1.4em;
-        color: #A855F7;
-        margin-bottom: 16px;
-        font-weight: 700;
-        font-family: 'Orbitron',sans-serif;
+        font-size: 1.8em; /* Tamaño de título más grande */
+        color: #91B8FF; /* CAMBIO: Color del título a #91B8FF */
+        margin-bottom: 15px;
+        font-weight: bold;
     `;
 
     // 5. Crear el cuerpo del mensaje
@@ -1646,8 +1447,8 @@ function mostrarMensaje(titulo, mensaje) {
         max-height: 300px; /* Altura máxima para el contenido, con scroll si es muy largo */
         overflow-y: auto; /* Habilita el scroll vertical si el contenido excede max-height */
         padding-right: 5px; /* Pequeño padding para evitar que el texto se pegue a la barra de scroll */
-        color: #EDEDF5;
-        background-color: transparent;
+        color: white; /* Color de texto blanco para contraste */
+        background-color: #222222; /* Fondo oscuro para el messageBody */
     `;
     messageBody.innerHTML = mensaje;
 
@@ -1657,19 +1458,17 @@ function mostrarMensaje(titulo, mensaje) {
     okButton.classList.add('menu-button');
     okButton.style.cssText = `
         margin-top: 10px;
-        background-color: rgba(168,85,247,0.15);
-        color: #A855F7;
-        border: 1px solid #A855F7;
-        padding: 11px 24px;
-        border-radius: 10px;
+        background-color: #91B8FF; /* CAMBIO: Color de fondo del botón a #91B8FF */
+        color: white; /* Color de texto del botón (mantener blanco para contraste) */
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
         cursor: pointer;
         font-size: 1em;
-        font-weight: 600;
-        font-family: 'DM Sans','Inter',sans-serif;
-        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        transition: background-color 0.2s ease;
     `;
-    okButton.onmouseover = () => { okButton.style.backgroundColor = 'rgba(168,85,247,0.28)'; okButton.style.boxShadow = '0 0 14px rgba(168,85,247,0.4)'; };
-    okButton.onmouseout = () => { okButton.style.backgroundColor = 'rgba(168,85,247,0.15)'; okButton.style.boxShadow = 'none'; };
+    okButton.onmouseover = () => { okButton.style.backgroundColor = '#779FE5'; }; // CAMBIO: Color hover más oscuro de #91B8FF
+    okButton.onmouseout = () => { okButton.style.backgroundColor = '#91B8FF'; }; // CAMBIO: Color al quitar el ratón a #91B8FF
     okButton.onclick = closeModal; // Cierra el modal al hacer clic en Aceptar
 
     // 7. Ensamblar el modal: añadir todos los elementos al contenido, y el contenido al overlay
@@ -1679,13 +1478,9 @@ function mostrarMensaje(titulo, mensaje) {
     modalContent.appendChild(okButton);
     modalOverlay.appendChild(modalContent);
 
-    // 8. Añadir el modal al DOM (al contenedor principal de tu aplicación o al <body>)
-    const appContainer = document.getElementById('app-container');
-    if (appContainer) {
-        appContainer.appendChild(modalOverlay);
-    } else {
-        document.body.appendChild(modalOverlay);
-    }
+    // 8. Añadir el modal al <body> directamente para que position:fixed funcione
+    // correctamente y no quede atrapado en el stacking context de #app-container.
+    document.body.appendChild(modalOverlay);
 }
 
 // --- FIN DE LA FUNCIÓN mostrarMensaje ---
@@ -1722,17 +1517,17 @@ modalStyles.textContent = `
     }
     
     #ayuda-irregularidades-content::-webkit-scrollbar-track {
-        background: rgba(255,255,255,0.06);
+        background: #f1f1f1;
         border-radius: 10px;
     }
     
     #ayuda-irregularidades-content::-webkit-scrollbar-thumb {
-        background: #A855F7;
+        background: #667eea;
         border-radius: 10px;
     }
     
     #ayuda-irregularidades-content::-webkit-scrollbar-thumb:hover {
-        background: #FF2DA6;
+        background: #764ba2;
     }
     
     @media (max-width: 768px) {
@@ -1752,17 +1547,18 @@ document.head.appendChild(modalStyles);
  * Guarda el progreso actual del usuario (puntuación y nivel) en el almacenamiento local del navegador.
  * También guarda los tiempos verbales seleccionados por el usuario.
  */
-function guardarProgreso() {
+function guardarProgreso(mostrarConfirmacion = true) {
     const progreso = {
         puntuacion: puntuacion,
         nivel: calcularNivel(puntuacion),
         tiemposSeleccionados: tiemposSeleccionadosUsuario
     };
     localStorage.setItem('progresoVerbos', JSON.stringify(progreso));
-    mostrarMensaje("Progreso", "¡Progreso guardado exitosamente!");
-    
     localStorage.setItem('verbosSeleccionados', JSON.stringify(verbosSeleccionadosUsuario));
 
+    if (mostrarConfirmacion) {
+        mostrarMensaje("Progreso", "¡Progreso guardado exitosamente!");
+    }
 }
 
 /**
@@ -1802,83 +1598,93 @@ function limpiarContenedor() {
 function mostrarMenu() {
     console.log('mostrarMenu() llamada.');
     limpiarContenedor();
-    setGameBackground(false); // fondo liso en inicio
-
-    // --- Zona de marca: insignia arriba ---
-    const logoZone = document.createElement('div');
-    logoZone.className = 'logo-zone';
-    logoZone.innerHTML = `
-        <img class="ins-big" alt="Insignia SILABOS" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJldEciIGN4PSI0MCUiIGN5PSIzNSUiIHI9IjY1JSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRjJEQTYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI2MCUiIHN0b3AtY29sb3I9IiNBODU1RjciLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJyaWdHIiBjeD0iNDAlIiBjeT0iNDAlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkZGRkZGIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNDUlIiBzdG9wLWNvbG9yPSIjMDBDOEZGIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwOTZDOCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0ic3RhckciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNBODU1RjciLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQTg1NUY3IiBzdG9wLW9wYWNpdHk9IjAiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImhhbG9CZXQiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRjJEQTYiIHN0b3Atb3BhY2l0eT0iMC41NSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQ1JSIgc3RvcC1jb2xvcj0iI0ZGMkRBNiIgc3RvcC1vcGFjaXR5PSIwLjE4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0ZGMkRBNiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJoYWxvUmlnIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDBDOEZGIiBzdG9wLW9wYWNpdHk9IjAuNSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQ1JSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIgc3RvcC1vcGFjaXR5PSIwLjE2Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0ic29mdCIgeD0iLTgwJSIgeT0iLTgwJSIgd2lkdGg9IjI2MCUiIGhlaWdodD0iMjYwJSI+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjEuMSIgcmVzdWx0PSJiIi8+CiAgICAgIDxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT4KICAgIDwvZmlsdGVyPgogIDwvZGVmcz4KCiAgPCEtLSBGb25kbyByZWRvbmRvIGNhc2kgbmVncm8gKGZhdmljb24tZnJpZW5kbHkpIC0tPgogIDxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjYwIiBmaWxsPSIjMEEwQTEyIi8+CiAgPGNpcmNsZSBjeD0iNjAiIGN5PSI2MCIgcj0iNTkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0E4NTVGNyIgc3Ryb2tlLW9wYWNpdHk9IjAuMjUiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIEhhbG9zIGFtcGxpb3MsIGNvbiBtYXJnZW4gZGUgc29icmEgZGVudHJvIGRlbCBsaWVuem8gLS0+CiAgPGNpcmNsZSBjeD0iNDIiIGN5PSIzOCIgcj0iMzAiIGZpbGw9InVybCgjaGFsb0JldCkiLz4KICA8Y2lyY2xlIGN4PSI4MCIgY3k9Ijg0IiByPSIzMCIgZmlsbD0idXJsKCNoYWxvUmlnKSIvPgoKICA8IS0tCiAgICBDb25zdGVsYWNpw7NuIGRlIE9yacOzbiwgcmVjZW50cmFkYSBlbiBlbCBsaWVuem8gMTIweDEyMC4KICAgIENpbnR1cmEgKGxhcyAzIG1hcsOtYXMpIGVuIGRpYWdvbmFsIGNlbnRyYWw7IEJldGVsZ2V1c2UgYXJyaWJhLWl6cSwgUmlnZWwgYWJham8tZGVyLgogICAgQ29vcmRlbmFkYXMgY29uIG1hcmdlbiBtw61uaW1vIGRlIDE2cHggYSBjYWRhIGJvcmRlLgogIC0tPgogIDxnIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSI+CiAgICA8IS0tIGzDrW5lYXMgbW9yYWRhcyAoY3VlcnBvKSAtLT4KICAgIDxnIHN0cm9rZT0iI0E4NTVGNyIgc3Ryb2tlLXdpZHRoPSIxLjQiIG9wYWNpdHk9IjAuODUiPgogICAgICA8bGluZSB4MT0iNDIiIHkxPSIzOCIgeDI9Ijc4IiB5Mj0iNDQiLz4KICAgICAgPGxpbmUgeDE9IjQyIiB5MT0iMzgiIHgyPSI1MCIgeTI9IjYyIi8+CiAgICAgIDxsaW5lIHgxPSI3OCIgeTE9IjQ0IiB4Mj0iNzIiIHkyPSI2MiIvPgogICAgICA8bGluZSB4MT0iNTAiIHkxPSI2MiIgeDI9IjM4IiB5Mj0iOTAiLz4KICAgICAgPGxpbmUgeDE9IjcyIiB5MT0iNjIiIHgyPSI4MCIgeTI9Ijg0Ii8+CiAgICA8L2c+CiAgICA8IS0tIGNpbnR1csOzbiAoY2lhbiwgbcOhcyBncnVlc28pIC0tPgogICAgPGcgc3Ryb2tlPSIjMDBDOEZGIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuOTUiPgogICAgICA8bGluZSB4MT0iNTAiIHkxPSI2MiIgeDI9IjYxIiB5Mj0iNjEiLz4KICAgICAgPGxpbmUgeDE9IjYxIiB5MT0iNjEiIHgyPSI3MiIgeTI9IjYyIi8+CiAgICA8L2c+CiAgICA8IS0tIGzDrW5lYSBiYXNlIHB1bnRlYWRhIChlc3BhZGEvYmFzZSkgLS0+CiAgICA8bGluZSB4MT0iMzgiIHkxPSI5MCIgeDI9IjgwIiB5Mj0iODQiIHN0cm9rZT0iIzAwQzhGRiIgc3Ryb2tlLXdpZHRoPSIwLjkiIHN0cm9rZS1kYXNoYXJyYXk9IjIuNSw0IiBvcGFjaXR5PSIwLjciLz4KICA8L2c+CgogIDwhLS0gRXN0cmVsbGFzIC0tPgogIDwhLS0gQmV0ZWxnZXVzZSAoZnV4aWEsIGhvbWJybyBzdXAtaXpxKSAtLT4KICA8Y2lyY2xlIGN4PSI0MiIgY3k9IjM4IiByPSI1LjIiIGZpbGw9InVybCgjYmV0RykiIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgogIDwhLS0gQmVsbGF0cml4IChob21icm8gc3VwLWRlcikgLS0+CiAgPGNpcmNsZSBjeD0iNzgiIGN5PSI0NCIgcj0iMy40IiBmaWxsPSIjQTg1NUY3IiBmaWx0ZXI9InVybCgjc29mdCkiLz4KICA8IS0tIENpbnR1csOzbjogMyBtYXLDrWFzIC0tPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNjIiIHI9IjIuOCIgZmlsbD0iIzAwQzhGRiIgZmlsdGVyPSJ1cmwoI3NvZnQpIi8+CiAgPGNpcmNsZSBjeD0iNjEiIGN5PSI2MSIgcj0iMyIgICBmaWxsPSIjRkZGRkZGIiBmaWx0ZXI9InVybCgjc29mdCkiLz4KICA8Y2lyY2xlIGN4PSI3MiIgY3k9IjYyIiByPSIyLjgiIGZpbGw9IiMwMEM4RkYiIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgogIDwhLS0gU2FpcGggKHJvZGlsbGEgaXpxKSAtLT4KICA8Y2lyY2xlIGN4PSIzOCIgY3k9IjkwIiByPSIyLjYiIGZpbGw9IiNBODU1RjciIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgogIDwhLS0gUmlnZWwgKHBpZSBkZXIsIGNpYW4gYnJpbGxhbnRlKSAtLT4KICA8Y2lyY2xlIGN4PSI4MCIgY3k9Ijg0IiByPSI0LjYiIGZpbGw9InVybCgjcmlnRykiIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgoKICA8IS0tIGRlc3RlbGxvcyBzdXRpbGVzIGNlbnRyYWRvcyBzb2JyZSBlc3RyZWxsYXMgZ3JhbmRlcyAtLT4KICA8Y2lyY2xlIGN4PSI0MiIgY3k9IjM4IiByPSI5IiBmaWxsPSJ1cmwoI3N0YXJHKSIgb3BhY2l0eT0iMC41Ii8+CiAgPGNpcmNsZSBjeD0iODAiIGN5PSI4NCIgcj0iOCIgZmlsbD0idXJsKCNzdGFyRykiIG9wYWNpdHk9IjAuNDUiLz4KPC9zdmc+Cg==">
-        <div class="mark">ConJuanjugator</div>
-        <div class="tag">conjuga jugando</div>
+    appContainer.innerHTML = `
+        <div class="screen screen--home">
+            <div class="screen__hero">
+                <img src="Logo_JJ_Azul.png" alt="ConJuanJugator" class="app-logo">
+                <p class="screen__tagline">Juega y aprende español</p>
+            </div>
+            <div class="nav-tiles">
+                <button class="nav-tile nav-tile--learn" id="btn-aprender">
+                    <div class="nav-tile__bg"></div>
+                    <div class="nav-tile__content">
+                        <svg class="nav-tile__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                        </svg>
+                        <div class="nav-tile__text">
+                            <span class="nav-tile__title">Aprender</span>
+                            <span class="nav-tile__desc">Tiempos · Irregulares · Verbos</span>
+                        </div>
+                        <svg class="nav-tile__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                        </svg>
+                    </div>
+                </button>
+                <button class="nav-tile nav-tile--play" id="btn-practicar">
+                    <div class="nav-tile__bg"></div>
+                    <div class="nav-tile__content">
+                        <svg class="nav-tile__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+                        </svg>
+                        <div class="nav-tile__text">
+                            <span class="nav-tile__title">Jugar</span>
+                            <span class="nav-tile__desc">ConJuanJugator · Irregulares · Tiempos</span>
+                        </div>
+                        <svg class="nav-tile__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                        </svg>
+                    </div>
+                </button>
+            </div>
+        </div>
     `;
-    appContainer.appendChild(logoZone);
-
-    // --- Tarjetas de acceso (Aprender / Jugar) ---
-    const cards = document.createElement('div');
-    cards.className = 'home-cards';
-
-    const cardLeer = document.createElement('button');
-    cardLeer.className = 'home-card learn';
-    cardLeer.innerHTML = `
-        <span class="icwrap"><svg class="ico" viewBox="0 0 24 24"><use href="#i-book"/></svg></span>
-        <h3>Leer para aprender</h3>
-        <p>Estudia las formas verbales y los usos</p>
-    `;
-    cardLeer.onclick = mostrarSubMenuAprender;
-
-    const cardJugar = document.createElement('button');
-    cardJugar.className = 'home-card play';
-    cardJugar.innerHTML = `
-        <span class="icwrap"><svg class="ico" viewBox="0 0 24 24"><use href="#i-pad"/></svg></span>
-        <h3>Jugar para practicar</h3>
-        <p>Pon a prueba tus conocimientos</p>
-    `;
-    cardJugar.onclick = mostrarSubMenuPracticar;
-
-    cards.appendChild(cardLeer);
-    cards.appendChild(cardJugar);
-    appContainer.appendChild(cards);
-
-    // --- Firma SILABOS al pie: logo + texto ---
-    const foot = document.createElement('div');
-    foot.style.textAlign = 'center';
-    foot.innerHTML = `
-        <img class="logo-foot" alt="SILABOS" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii0xMCAtMTAgNjMwIDE0NSI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImdiIiBjeD0iMzUlIiBjeT0iMzUlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkYyREE2Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0E4NTVGNyIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ3IiIGN4PSIzNSUiIGN5PSI1MCUiIHI9IjY1JSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiMwMEM4RkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQTg1NUY3Ii8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJoYiIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgIHN0b3AtY29sb3I9IiNGRjJEQTYiIHN0b3Atb3BhY2l0eT0iMC4yMiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQwJSIgc3RvcC1jb2xvcj0iI0ZGMkRBNiIgc3RvcC1vcGFjaXR5PSIwLjEwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0ZGMkRBNiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJociIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgIHN0b3AtY29sb3I9IiMwMEM4RkYiIHN0b3Atb3BhY2l0eT0iMC4yMiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQwJSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIgc3RvcC1vcGFjaXR5PSIwLjEwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJiZXQtbm9kZSIgY3g9IjQwJSIgY3k9IjM1JSIgcj0iNjAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgICBzdG9wLWNvbG9yPSIjRkYyREE2IiBzdG9wLW9wYWNpdHk9IjAuOSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjYwJSIgIHN0b3AtY29sb3I9IiNBODU1RjciIHN0b3Atb3BhY2l0eT0iMC43Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBBMEExMiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJmbGFzaCIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI0ZGRkZGRiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0E4NTVGNyIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iYmx1ci1oZWF2eSIgeD0iLTE1MCUiIHk9Ii0xNTAlIiB3aWR0aD0iNDAwJSIgaGVpZ2h0PSI0MDAlIj4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iOCIvPgogICAgPC9maWx0ZXI+CiAgICA8ZmlsdGVyIGlkPSJnbG93LXNtIiB4PSItMTAwJSIgeT0iLTEwMCUiIHdpZHRoPSIzMDAlIiBoZWlnaHQ9IjMwMCUiPgogICAgICA8ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxLjUiIHJlc3VsdD0iYiIvPgogICAgICA8ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U+CiAgICA8L2ZpbHRlcj4KCiAgICA8c3R5bGU+CiAgICAgIEBrZXlmcmFtZXMgZmx5SW4gewogICAgICAgIDAlICAgeyB0cmFuc2Zvcm06IHRyYW5zbGF0ZSh2YXIoLS1veCksIHZhcigtLW95KSkgc2NhbGUoMC4wNSk7IG9wYWNpdHk6IDA7IH0KICAgICAgICAyMCUgIHsgb3BhY2l0eTogMTsgfQogICAgICAgIDEwMCUgeyB0cmFuc2Zvcm06IHRyYW5zbGF0ZSgwLCAwKSBzY2FsZSgxKTsgb3BhY2l0eTogMTsgfQogICAgICB9CiAgICAgIEBrZXlmcmFtZXMgZHJhd0xpbmUgewogICAgICAgIHRvIHsgc3Ryb2tlLWRhc2hvZmZzZXQ6IDA7IG9wYWNpdHk6IDE7IH0KICAgICAgfQogICAgICBAa2V5ZnJhbWVzIGZsYXNoRWZmZWN0IHsKICAgICAgICAwJSAgIHsgcjogMTsgb3BhY2l0eTogMDsgfQogICAgICAgIDIwJSAgeyBvcGFjaXR5OiAwLjk7IH0KICAgICAgICAxMDAlIHsgcjogMjQ7IG9wYWNpdHk6IDA7IH0KICAgICAgfQogICAgICBAa2V5ZnJhbWVzIGZhZGVJbiAgeyB0byB7IG9wYWNpdHk6IDE7IH0gfQogICAgICBAa2V5ZnJhbWVzIGxldHJhSW4gewogICAgICAgIDAlICAgeyBvcGFjaXR5OiAwOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMTBweCk7IH0KICAgICAgICAxMDAlIHsgb3BhY2l0eTogMTsgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDApOyB9CiAgICAgIH0KICAgICAgQGtleWZyYW1lcyB0YWdsaW5lSW4gewogICAgICAgIDAlICAgeyBvcGFjaXR5OiAwOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoNnB4KTsgfQogICAgICAgIDEwMCUgeyBvcGFjaXR5OiAxOyB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoMCk7IH0KICAgICAgfQoKICAgICAgLnN0YXIgICAgICAgIHsgb3BhY2l0eTogMDsgYW5pbWF0aW9uOiBmbHlJbiAwLjlzIGN1YmljLWJlemllcigwLjQ1LDAuMDUsMC41NSwwLjk1KSBmb3J3YXJkczsgfQogICAgICAubGluZS1kcmF3ICAgeyBvcGFjaXR5OiAwOyBhbmltYXRpb246IGRyYXdMaW5lIDAuNHMgZWFzZS1vdXQgZm9yd2FyZHM7IHN0cm9rZS1kYXNoYXJyYXk6IDE1MDsgc3Ryb2tlLWRhc2hvZmZzZXQ6IDE1MDsgfQogICAgICAuZmxhc2gtY2lyY2xleyBvcGFjaXR5OiAwOyBhbmltYXRpb246IGZsYXNoRWZmZWN0IDAuNTVzIGVhc2Utb3V0IGZvcndhcmRzOyB9CiAgICAgIC5oYWxvICAgICAgICB7IG9wYWNpdHk6IDA7IGFuaW1hdGlvbjogZmFkZUluIDAuOHMgZWFzZS1vdXQgZm9yd2FyZHM7IH0KICAgICAgLmxldHJhICAgICAgIHsgb3BhY2l0eTogMDsgYW5pbWF0aW9uOiBsZXRyYUluIDAuMzVzIGVhc2Utb3V0IGZvcndhcmRzOyB9CiAgICAgICN0YWdsaW5lICAgICB7IG9wYWNpdHk6IDA7IGFuaW1hdGlvbjogdGFnbGluZUluIDAuNXMgZWFzZS1vdXQgNC44cyBmb3J3YXJkczsgfQoKICAgICAgI3MtYmV0ZWxnZXVzZSB7IC0tb3g6IDcxcHg7ICAtLW95OiA4MXB4OyAgYW5pbWF0aW9uLWRlbGF5OiAwLjBzOyB0cmFuc2Zvcm0tb3JpZ2luOiAyNHB4IDE0cHg7ICAgfQogICAgICAjcy1iZWxsYXRyaXggIHsgLS1veDotMTE4cHg7IC0tb3k6IDU5cHg7ICBhbmltYXRpb24tZGVsYXk6IDAuMnM7IHRyYW5zZm9ybS1vcmlnaW46IDg4cHggMjZweDsgICB9CiAgICAgICNzLW1pbnRha2EgICAgeyAtLW94OiA0MXB4OyAgLS1veTotNTVweDsgIGFuaW1hdGlvbi1kZWxheTogMC40czsgdHJhbnNmb3JtLW9yaWdpbjogMzRweCA2MHB4OyAgIH0KICAgICAgI3MtYWxuaWxhbSAgICB7IC0tb3g6LTQ2cHg7ICAtLW95Oi00OHB4OyAgYW5pbWF0aW9uLWRlbGF5OiAwLjZzOyB0cmFuc2Zvcm0tb3JpZ2luOiA1NnB4IDU4cHg7ICAgfQogICAgICAjcy1hbG5pdGFrICAgIHsgLS1veDotNDNweDsgIC0tb3k6IDQzcHg7ICBhbmltYXRpb24tZGVsYXk6IDAuOHM7IHRyYW5zZm9ybS1vcmlnaW46IDc4cHggNTJweDsgICB9CiAgICAgICNzLXNhaXBoICAgICAgeyAtLW94OiA2MHB4OyAgLS1veTotNThweDsgIGFuaW1hdGlvbi1kZWxheTogMS4wczsgdHJhbnNmb3JtLW9yaWdpbjogMjBweCAxMDhweDsgIH0KICAgICAgI3MtcmlnZWwgICAgICB7IC0tb3g6LTk1cHg7ICAtLW95Oi00NXB4OyAgYW5pbWF0aW9uLWRlbGF5OiAxLjJzOyB0cmFuc2Zvcm0tb3JpZ2luOiAxMDBweCAxMDBweDsgfQoKICAgICAgI2ZsMSB7IGFuaW1hdGlvbi1kZWxheTogMC45czsgfSAjZmwyIHsgYW5pbWF0aW9uLWRlbGF5OiAxLjFzOyB9CiAgICAgICNmbDMgeyBhbmltYXRpb24tZGVsYXk6IDEuM3M7IH0gI2ZsNCB7IGFuaW1hdGlvbi1kZWxheTogMS41czsgfQogICAgICAjZmw1IHsgYW5pbWF0aW9uLWRlbGF5OiAxLjdzOyB9ICNmbDYgeyBhbmltYXRpb24tZGVsYXk6IDEuOXM7IH0KICAgICAgI2ZsNyB7IGFuaW1hdGlvbi1kZWxheTogMi4xczsgfQoKICAgICAgI2hhbG8tYmV0ZWxnZXVzZSAgeyBhbmltYXRpb24tZGVsYXk6IDAuOXM7IH0KICAgICAgI2hhbG8tYmV0ZWxnZXVzZTIgeyBhbmltYXRpb24tZGVsYXk6IDAuOXM7IH0KICAgICAgI2hhbG8tcmlnZWwgICAgICAgeyBhbmltYXRpb24tZGVsYXk6IDIuMXM7IH0KICAgICAgI2hhbG8tcmlnZWwyICAgICAgeyBhbmltYXRpb24tZGVsYXk6IDIuMXM7IH0KCiAgICAgICNsMSB7IGFuaW1hdGlvbi1kZWxheTogMi4zMHM7IH0gI2wyIHsgYW5pbWF0aW9uLWRlbGF5OiAyLjQzczsgfQogICAgICAjbDMgeyBhbmltYXRpb24tZGVsYXk6IDIuNTZzOyB9ICNsNCB7IGFuaW1hdGlvbi1kZWxheTogMi42OXM7IH0KICAgICAgI2w1IHsgYW5pbWF0aW9uLWRlbGF5OiAyLjgyczsgfSAjbDYgeyBhbmltYXRpb24tZGVsYXk6IDIuOTVzOyB9CiAgICAgICNsNyB7IGFuaW1hdGlvbi1kZWxheTogMy4wOHM7IH0KICAgICAgI2w4IHsgYW5pbWF0aW9uLWRlbGF5OiAzLjIxczsgc3Ryb2tlLWRhc2hhcnJheTogMyw0OyBzdHJva2UtZGFzaG9mZnNldDogMDsgfQoKICAgICAgI2x0MSB7IGFuaW1hdGlvbi1kZWxheTogMy43czsgIH0gI2x0MiB7IGFuaW1hdGlvbi1kZWxheTogMy44M3M7IH0KICAgICAgI2x0MyB7IGFuaW1hdGlvbi1kZWxheTogMy45NnM7IH0gI2x0NCB7IGFuaW1hdGlvbi1kZWxheTogNC4wOXM7IH0KICAgICAgI2x0NSB7IGFuaW1hdGlvbi1kZWxheTogNC4yMnM7IH0gI2x0NiB7IGFuaW1hdGlvbi1kZWxheTogNC4zNXM7IH0KICAgICAgI2x0NyB7IGFuaW1hdGlvbi1kZWxheTogNC40OHM7IH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgoKICA8IS0tIEhhbG9zIC0tPgogIDxjaXJjbGUgaWQ9ImhhbG8tYmV0ZWxnZXVzZSIgIGNsYXNzPSJoYWxvIiBjeD0iMjQiICBjeT0iMTQiICByPSIzOCIgZmlsbD0idXJsKCNoYikiIGZpbHRlcj0idXJsKCNibHVyLWhlYXZ5KSIvPgogIDxjaXJjbGUgaWQ9ImhhbG8tYmV0ZWxnZXVzZTIiIGNsYXNzPSJoYWxvIiBjeD0iMjQiICBjeT0iMTQiICByPSIxOCIgZmlsbD0iIzBBMEExMiIgZmlsdGVyPSJ1cmwoI2JsdXItaGVhdnkpIi8+CiAgPGNpcmNsZSBpZD0iaGFsby1yaWdlbCIgICAgICAgY2xhc3M9ImhhbG8iIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjM4IiBmaWxsPSJ1cmwoI2hyKSIgZmlsdGVyPSJ1cmwoI2JsdXItaGVhdnkpIi8+CiAgPGNpcmNsZSBpZD0iaGFsby1yaWdlbDIiICAgICAgY2xhc3M9ImhhbG8iIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjE4IiBmaWxsPSIjMEEwQTEyIiBmaWx0ZXI9InVybCgjYmx1ci1oZWF2eSkiLz4KCiAgPCEtLSBMw61uZWFzIOKAlCB0b2RhcyBuw610aWRhcywgc2luIGZpbHRybyAtLT4KICA8bGluZSBpZD0ibDEiIGNsYXNzPSJsaW5lLWRyYXciIHgxPSIyNCIgIHkxPSIxNCIgIHgyPSI4OCIgIHkyPSIyNiIgIHN0cm9rZT0iI0E4NTVGNyIgc3Ryb2tlLXdpZHRoPSIxLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIGlkPSJsMiIgY2xhc3M9ImxpbmUtZHJhdyIgeDE9IjI0IiAgeTE9IjE0IiAgeDI9IjM0IiAgeTI9IjYwIiAgc3Ryb2tlPSIjQTg1NUY3IiBzdHJva2Utd2lkdGg9IjEuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgaWQ9ImwzIiBjbGFzcz0ibGluZS1kcmF3IiB4MT0iODgiICB5MT0iMjYiICB4Mj0iNzgiICB5Mj0iNTIiICBzdHJva2U9IiNBODU1RjciIHN0cm9rZS13aWR0aD0iMS4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSBpZD0ibDQiIGNsYXNzPSJsaW5lLWRyYXciIHgxPSIzNCIgIHkxPSI2MCIgIHgyPSI1NiIgIHkyPSI1OCIgIHN0cm9rZT0iIzAwQzhGRiIgc3Ryb2tlLXdpZHRoPSIyIiAgIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIGlkPSJsNSIgY2xhc3M9ImxpbmUtZHJhdyIgeDE9IjU2IiAgeTE9IjU4IiAgeDI9Ijc4IiAgeTI9IjUyIiAgc3Ryb2tlPSIjMDBDOEZGIiBzdHJva2Utd2lkdGg9IjIiICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgaWQ9Imw2IiBjbGFzcz0ibGluZS1kcmF3IiB4MT0iMzQiICB5MT0iNjAiICB4Mj0iMjAiICB5Mj0iMTA4IiBzdHJva2U9IiNBODU1RjciIHN0cm9rZS13aWR0aD0iMS4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSBpZD0ibDciIGNsYXNzPSJsaW5lLWRyYXciIHgxPSI3OCIgIHkxPSI1MiIgIHgyPSIxMDAiIHkyPSIxMDAiIHN0cm9rZT0iI0E4NTVGNyIgc3Ryb2tlLXdpZHRoPSIxLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIGlkPSJsOCIgY2xhc3M9ImxpbmUtZHJhdyIgeDE9IjIwIiAgeTE9IjEwOCIgeDI9IjEwMCIgeTI9IjEwMCIgc3Ryb2tlPSIjMDBDOEZGIiBzdHJva2Utd2lkdGg9IjAuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CgogIDwhLS0gTm9kb3MgaW50ZXJtZWRpb3MgLS0+CiAgPGcgaWQ9InMtYmVsbGF0cml4IiBjbGFzcz0ic3RhciI+PGNpcmNsZSBjeD0iODgiICBjeT0iMjYiICByPSI3IiAgZmlsbD0iI0E4NTVGNyIvPjwvZz4KICA8ZyBpZD0icy1taW50YWthIiAgIGNsYXNzPSJzdGFyIj48Y2lyY2xlIGN4PSIzNCIgIGN5PSI2MCIgIHI9IjUiICBmaWxsPSIjMDBDOEZGIi8+PC9nPgogIDxnIGlkPSJzLWFsbmlsYW0iICAgY2xhc3M9InN0YXIiPjxjaXJjbGUgY3g9IjU2IiAgY3k9IjU4IiAgcj0iNSIgIGZpbGw9IiMwMEM4RkYiLz48L2c+CiAgPGcgaWQ9InMtYWxuaXRhayIgICBjbGFzcz0ic3RhciI+PGNpcmNsZSBjeD0iNzgiICBjeT0iNTIiICByPSI1IiAgZmlsbD0iIzAwQzhGRiIvPjwvZz4KICA8ZyBpZD0icy1zYWlwaCIgICAgIGNsYXNzPSJzdGFyIj48Y2lyY2xlIGN4PSIyMCIgIGN5PSIxMDgiIHI9IjYiICBmaWxsPSIjQTg1NUY3Ii8+PC9nPgoKICA8IS0tIEJldGVsZ2V1c2UgLS0+CiAgPGcgaWQ9InMtYmV0ZWxnZXVzZSIgY2xhc3M9InN0YXIiPgogICAgPGNpcmNsZSBjeD0iMjQiIGN5PSIxNCIgcj0iOSIgZmlsbD0iIzBBMEExMiIvPgogICAgPGNpcmNsZSBjeD0iMjQiIGN5PSIxNCIgcj0iOSIgZmlsbD0idXJsKCNiZXQtbm9kZSkiIGZpbHRlcj0idXJsKCNnbG93LXNtKSIvPgogIDwvZz4KCiAgPCEtLSBSaWdlbCBjb24gUyBjZW50cmFkYSAtLT4KICA8ZyBpZD0icy1yaWdlbCIgY2xhc3M9InN0YXIiIGZpbHRlcj0idXJsKCNnbG93LXNtKSI+CiAgICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgiIGZpbGw9InVybCgjZ3IpIiBvcGFjaXR5PSIwLjc1Ii8+CiAgICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzBBMEExMiIgc3Ryb2tlLXdpZHRoPSIwLjUiLz4KICAgIDx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0iY2VudHJhbCIKICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iOSIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzBBMEExMiI+UzwvdGV4dD4KICA8L2c+CgogIDwhLS0gRmxhc2hlcyAtLT4KICA8Y2lyY2xlIGlkPSJmbDEiIGNsYXNzPSJmbGFzaC1jaXJjbGUiIGN4PSIyNCIgIGN5PSIxNCIgIHI9IjEiIGZpbGw9InVybCgjZmxhc2gpIi8+CiAgPGNpcmNsZSBpZD0iZmwyIiBjbGFzcz0iZmxhc2gtY2lyY2xlIiBjeD0iODgiICBjeT0iMjYiICByPSIxIiBmaWxsPSJ1cmwoI2ZsYXNoKSIvPgogIDxjaXJjbGUgaWQ9ImZsMyIgY2xhc3M9ImZsYXNoLWNpcmNsZSIgY3g9IjM0IiAgY3k9IjYwIiAgcj0iMSIgZmlsbD0idXJsKCNmbGFzaCkiLz4KICA8Y2lyY2xlIGlkPSJmbDQiIGNsYXNzPSJmbGFzaC1jaXJjbGUiIGN4PSI1NiIgIGN5PSI1OCIgIHI9IjEiIGZpbGw9InVybCgjZmxhc2gpIi8+CiAgPGNpcmNsZSBpZD0iZmw1IiBjbGFzcz0iZmxhc2gtY2lyY2xlIiBjeD0iNzgiICBjeT0iNTIiICByPSIxIiBmaWxsPSJ1cmwoI2ZsYXNoKSIvPgogIDxjaXJjbGUgaWQ9ImZsNiIgY2xhc3M9ImZsYXNoLWNpcmNsZSIgY3g9IjIwIiAgY3k9IjEwOCIgcj0iMSIgZmlsbD0idXJsKCNmbGFzaCkiLz4KICA8Y2lyY2xlIGlkPSJmbDciIGNsYXNzPSJmbGFzaC1jaXJjbGUiIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjEiIGZpbGw9InVybCgjZmxhc2gpIi8+CgogIDwhLS0gU0lMQUJPUyBsZXRyYSBhIGxldHJhIOKAlCBtaXNtbyBlc3RpbG8gcXVlIGVsIGJhbm5lciBvcmlnaW5hbCBhenVsIC0tPgogIDx0ZXh0IGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCdUaW1lcyBOZXcgUm9tYW4nLHNlcmlmIiBmb250LXNpemU9IjcyIiBmb250LXdlaWdodD0iNzAwIj4KICAgIDx0c3BhbiBpZD0ibHQxIiBjbGFzcz0ibGV0cmEiIHg9IjEzNiIgeT0iODgiIGZpbGw9IiNGRjJEQTYiPlM8L3RzcGFuPgogICAgPHRzcGFuIGlkPSJsdDIiIGNsYXNzPSJsZXRyYSIgZmlsbD0iI0ZGMkRBNiI+STwvdHNwYW4+CiAgICA8dHNwYW4gaWQ9Imx0MyIgY2xhc3M9ImxldHJhIiBmaWxsPSIjQTg1NUY3Ij5MPC90c3Bhbj4KICAgIDx0c3BhbiBpZD0ibHQ0IiBjbGFzcz0ibGV0cmEiIGZpbGw9IiNBODU1RjciPkE8L3RzcGFuPgogICAgPHRzcGFuIGlkPSJsdDUiIGNsYXNzPSJsZXRyYSIgZmlsbD0iI0E4NTVGNyI+QjwvdHNwYW4+CiAgICA8dHNwYW4gaWQ9Imx0NiIgY2xhc3M9ImxldHJhIiBmaWxsPSIjMDBDOEZGIj5PPC90c3Bhbj4KICAgIDx0c3BhbiBpZD0ibHQ3IiBjbGFzcz0ibGV0cmEiIGZpbGw9IiMwMEM4RkYiPlM8L3RzcGFuPgogIDwvdGV4dD4KCiAgPCEtLSBUYWdsaW5lIC0tPgogIDx0ZXh0IGlkPSJ0YWdsaW5lIiB4PSIxMzciIHk9IjExNiIKICAgIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIgogICAgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjQpIiBsZXR0ZXItc3BhY2luZz0iMy41Ij4KICAgIFBFREFHT0fDjUEgwrcgSUEgwrcgRUxFCiAgPC90ZXh0PgoKPC9zdmc+Cg==">
-    `;
-    appContainer.appendChild(foot);
+    document.getElementById('btn-aprender').onclick = mostrarSubMenuAprender;
+    document.getElementById('btn-practicar').onclick = mostrarSubMenuPracticar;
 }
 
-
-/**
- * Muestra el submenú para las actividades de "Aprender".
- */
 function mostrarSubMenuAprender() {
     console.log('mostrarSubMenuAprender() llamada.');
     limpiarContenedor();
-    setGameBackground(false);
-
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Leer para aprender';
-    appContainer.appendChild(titulo);
-
-    const instruccion = document.createElement('p');
-    instruccion.className = 'section-sub';
-    instruccion.textContent = 'Selecciona un tema para aprender';
-    appContainer.appendChild(instruccion);
-
-    const lista = document.createElement('div');
-    lista.className = 'row-list';
-    lista.appendChild(crearRowCard('i-book', 'var(--cian)', 'Tiempos Verbales: Uso y Forma', 'Cómo se forman y cuándo se usan', mostrarExplicacionesTiemposVerbales));
-    lista.appendChild(crearRowCard('i-warn', 'var(--verde)', 'Verbos Irregulares', 'Bota, sombrero, radical y más', mostrarVerbosRegularesIrregulares));
-    lista.appendChild(crearRowCard('i-book', 'var(--morado)', 'Significado de los Verbos', 'Qué expresa cada verbo', mostrarSignificadoVerbos));
-    appContainer.appendChild(lista);
-
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al Menú Principal';
-    botonVolver.onclick = mostrarMenu;
-    botonVolver.classList.add('back-button');
-    appContainer.appendChild(botonVolver);
+    appContainer.innerHTML = `
+        <div class="screen screen--submenu">
+            <div class="screen__header">
+                <button class="screen__back" id="sm-volver">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                </button>
+                <h1 class="screen__title">Aprender</h1>
+            </div>
+            <div class="menu-rows">
+                <button class="menu-row" id="sm-tiempos">
+                    <span class="menu-row__num">01</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Tiempos Verbales</span>
+                        <span class="menu-row__sub">Uso y forma de cada tiempo</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="sm-irregulares">
+                    <span class="menu-row__num">02</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Verbos Irregulares</span>
+                        <span class="menu-row__sub">Bota, sombrero, radical y más</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="sm-significado">
+                    <span class="menu-row__num">03</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Significado de Verbos</span>
+                        <span class="menu-row__sub">Traducciones y ejemplos</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+            </div>
+        </div>
+    `;
+    document.getElementById('sm-tiempos').onclick     = mostrarExplicacionesTiemposVerbales;
+    document.getElementById('sm-irregulares').onclick = mostrarVerbosRegularesIrregulares;
+    document.getElementById('sm-significado').onclick = mostrarSignificadoVerbos;
+    document.getElementById('sm-volver').onclick      = mostrarMenu;
 }
 
 /**
@@ -1886,85 +1692,98 @@ function mostrarSubMenuAprender() {
  */
 function mostrarSubMenuPracticar() {
     limpiarContenedor();
-    setGameBackground(false);
-
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Jugar para practicar';
-    appContainer.appendChild(titulo);
-
-    const instruccion = document.createElement('p');
-    instruccion.className = 'section-sub';
-    instruccion.textContent = 'Selecciona una actividad';
-    appContainer.appendChild(instruccion);
-
-    const lista = document.createElement('div');
-    lista.className = 'row-list';
-    lista.appendChild(crearRowCard('i-target', 'var(--fuxia)', 'ConJuanJugator', 'Conjuga en el tiempo indicado', mostrarSubMenuTiemposVerbales));
-    lista.appendChild(crearRowCard('i-clock', 'var(--morado)', 'Indefinido o Imperfecto', 'Distingue los dos pasados', mostrarSubMenuIndefinidoImperfecto));
-    lista.appendChild(crearRowCard('i-warn', 'var(--verde)', 'Regular o Irregular', 'Clasifica verbos arrastrando', mostrarSelectorTiempoJuegoArrastrar));
-    appContainer.appendChild(lista);
-
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al Menú Principal';
-    botonVolver.onclick = mostrarMenu;
-    botonVolver.classList.add('back-button');
-    appContainer.appendChild(botonVolver);
+    appContainer.innerHTML = `
+        <div class="screen screen--submenu">
+            <div class="screen__header">
+                <button class="screen__back" id="sm-volver">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                </button>
+                <h1 class="screen__title">Jugar</h1>
+            </div>
+            <div class="menu-rows">
+                <button class="menu-row" id="sm-conjugator">
+                    <span class="menu-row__num">01</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">ConJuanJugator</span>
+                        <span class="menu-row__sub">Conjuga verbos por tiempo y nivel</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="sm-indimp">
+                    <span class="menu-row__num">02</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Indefinido o Imperfecto</span>
+                        <span class="menu-row__sub">¿Cuándo usar cada tiempo?</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="sm-arrastra">
+                    <span class="menu-row__num">03</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Regular o Irregular</span>
+                        <span class="menu-row__sub">Arrastra verbos a su categoría</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+            </div>
+        </div>
+    `;
+    document.getElementById('sm-conjugator').onclick = mostrarSubMenuTiemposVerbales;
+    document.getElementById('sm-indimp').onclick      = mostrarSubMenuIndefinidoImperfecto;
+    document.getElementById('sm-arrastra').onclick    = mostrarSelectorTiempoJuegoArrastrar;
+    document.getElementById('sm-volver').onclick      = mostrarMenu;
 }
-/**
- * Muestra un selector de tiempo verbal para iniciar el juego de arrastrar directamente.
- */
+
 function mostrarSelectorTiempoJuegoArrastrar() {
     limpiarContenedor();
-    setGameBackground(false);
 
     const titulo = document.createElement('h2');
-    titulo.textContent = 'Regular o Irregular';
+    titulo.className = 'section-title';
+    titulo.textContent = 'Selecciona un Tiempo Verbal';
     appContainer.appendChild(titulo);
 
-    const instruccion = document.createElement('p');
-    instruccion.className = 'section-sub';
-    instruccion.textContent = 'Selecciona un tiempo verbal para jugar';
-    appContainer.appendChild(instruccion);
+    const allButtonsWrapper = document.createElement('div');
+    allButtonsWrapper.className = 'tiempos-nivel-wrapper';
+    appContainer.appendChild(allButtonsWrapper);
 
-    // Grupos por MODO (como en la v5)
-    const indicativo = ["presente", "pretérito perfecto", "pretérito indefinido", "pretérito imperfecto", "pluscuamperfecto", "futuro", "condicional"];
-    const subjuntivo = ["presente de subjuntivo", "imperfecto de subjuntivo", "pluscuamperfecto de subjuntivo"];
+    const basicTiempos = ["presente", "pretérito perfecto", "pretérito indefinido", "pretérito imperfecto"];
+    const intermediateTiempos = ["futuro", "condicional", "pluscuamperfecto", "presente de subjuntivo"];
+    const advancedTiempos = ["imperfecto de subjuntivo", "pluscuamperfecto de subjuntivo"];
 
-    const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-
-    // Handler de selección: conserva exactamente la lógica original
-    const lanzarJuego = (selectedTimeRaw) => {
-        const selectedTime = selectedTimeRaw.toLowerCase();
-        let standardizedTime = selectedTime;
-        if (selectedTime.includes("indefinido")) {
-            standardizedTime = "pretérito indefinido";
-        } else if (selectedTime.includes("imperfecto") && !selectedTime.includes("subjuntivo")) {
-            standardizedTime = "pretérito imperfecto";
-        }
-        mostrarJuegoArrastrarVerbosPorTiempo(standardizedTime);
-    };
-
-    const construirGrupo = (tituloModo, claseModo, tiempos, accent) => {
-        const label = document.createElement('div');
-        label.className = 'group-label ' + claseModo;
-        label.textContent = tituloModo;
-        appContainer.appendChild(label);
-
-        const lista = document.createElement('div');
-        lista.className = 'row-list row-list--compact';
+    const mkRow = (tiempos, levelClass) => {
+        const row = document.createElement('div');
+        row.className = `tiempo-row ${levelClass}`;
         tiempos.forEach(t => {
-            lista.appendChild(crearRowTiempo(t, accent, () => lanzarJuego(t)));
+            const btn = document.createElement('button');
+            btn.className = `btn-tiempo btn-tiempo--${levelClass}`;
+            btn.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+            row.appendChild(btn);
         });
-        appContainer.appendChild(lista);
+        return row;
     };
 
-    construirGrupo('Modo Indicativo', 'ind', indicativo, 'var(--cian)');
-    construirGrupo('Modo Subjuntivo', 'sub', subjuntivo, 'var(--amarillo)');
+    allButtonsWrapper.appendChild(mkRow(basicTiempos, 'basico'));
+    allButtonsWrapper.appendChild(mkRow(intermediateTiempos, 'intermedio'));
+    allButtonsWrapper.appendChild(mkRow(advancedTiempos, 'avanzado'));
+
+    // Mantener la lógica original de click intacta
+    allButtonsWrapper.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+            const selectedTime = button.textContent.toLowerCase();
+            let standardizedTime = selectedTime;
+            if (selectedTime.includes("indefinido")) {
+                standardizedTime = "pretérito indefinido";
+            } else if (selectedTime.includes("imperfecto") && !selectedTime.includes("subjuntivo")) {
+                standardizedTime = "pretérito imperfecto";
+            }
+            mostrarJuegoArrastrarVerbosPorTiempo(standardizedTime);
+        });
+    });
 
     const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al Menú de Practicar';
+    botonVolver.textContent = '← Jugar';
+    botonVolver.className = 'btn-back';
     botonVolver.onclick = mostrarSubMenuPracticar;
-    botonVolver.classList.add('back-button');
     appContainer.appendChild(botonVolver);
 }
 
@@ -1997,9 +1816,8 @@ let verbsToPlay = []; // Nuevo: Almacenará la lista de los 15 verbos aleatorios
 function mostrarJuegoArrastrarVerbosPorTiempo(tiempoKey) {
     console.log('[DEBUG] Valor de tiempoKey al inicio de la función:', tiempoKey);
     limpiarContenedor();
-    setGameBackground(true);
     const titulo = document.createElement('h2');
-    titulo.textContent = `Regular o Irregular · ${tiempoKey.charAt(0).toUpperCase() + tiempoKey.slice(1)}`;
+    titulo.textContent = `Juego de Irregularidades del ${tiempoKey.charAt(0).toUpperCase() + tiempoKey.slice(1)}`;
     appContainer.appendChild(titulo);
 
     const instruccion = document.createElement('p');
@@ -2012,12 +1830,33 @@ function mostrarJuegoArrastrarVerbosPorTiempo(tiempoKey) {
     explanationButtonContainer.style.marginBottom = '20px'; // Añade espacio debajo
 
     const explanationButton = document.createElement('button');
-    explanationButton.className = 'help-btn';
-    explanationButton.title = 'Ver explicación de los tipos de verbo';
-    explanationButton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><use href="#i-help"/></svg>¿Qué tipos de verbos hay?';
+    explanationButton.innerHTML = '💡';
+    explanationButton.title = 'Ver explicación del verbo';
+    explanationButton.style.width = '40px';
+    explanationButton.style.height = '40px';
+    explanationButton.style.borderRadius = '50%';
+    explanationButton.style.border = 'none';
+    explanationButton.style.backgroundColor = '#f0c600';
+    explanationButton.style.color = '#fff';
+    explanationButton.style.fontSize = '1.2em';
+    explanationButton.style.fontWeight = 'bold';
+    explanationButton.style.cursor = 'pointer';
+    explanationButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    explanationButton.style.display = 'flex';
+    explanationButton.style.justifyContent = 'center';
+    explanationButton.style.alignItems = 'center';
+    explanationButton.style.transition = 'transform 0.2s ease, background-color 0.2s ease';
     explanationButton.onclick = function() {
         mostrarModalVerbo('./Irregularidades.png');
     };
+    explanationButton.addEventListener('mouseenter', () => {
+        explanationButton.style.transform = 'scale(1.1)';
+        explanationButton.style.backgroundColor = '#e5b900';
+    });
+    explanationButton.addEventListener('mouseleave', () => {
+        explanationButton.style.transform = 'scale(1)';
+        explanationButton.style.backgroundColor = '#f0c600';
+    });
 
     explanationButtonContainer.appendChild(explanationButton);
     appContainer.appendChild(explanationButtonContainer);
@@ -2217,9 +2056,8 @@ function mostrarJuegoArrastrarVerbosPorTiempo(tiempoKey) {
         dropZone.id = cat.id; // El ID de la categoría (usado para validación)
         dropZone.className = 'drop-zone'; // Clase base para estilos de zona
 
-        // Título de la categoría (con icono SILABOS según el tipo)
-        dropZone.innerHTML = `<h4>${decorarCategoria(cat.nombre, cat.typeMatch)}</h4>`;
-        dropZone.classList.add(claseCategoria(cat.typeMatch));
+        // Título de la categoría
+        dropZone.innerHTML = `<h4>${cat.nombre}</h4>`;
 
         // Contenedor interno para los verbos que se van clasificando en esta categoría
         const droppedVerbsList = document.createElement('div');
@@ -2410,36 +2248,50 @@ function mostrarJuegoArrastrarVerbosPorTiempo(tiempoKey) {
 //Nueva función para el menu de Indefinido o Imperfecto
 function mostrarSubMenuIndefinidoImperfecto() {
     limpiarContenedor();
-    setGameBackground(false);
-
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Indefinido o Imperfecto';
-    appContainer.appendChild(titulo);
-
-    const instruccion = document.createElement('p');
-    instruccion.className = 'section-sub';
-    instruccion.textContent = 'Selecciona una actividad para practicar';
-    appContainer.appendChild(instruccion);
-
-    const lista = document.createElement('div');
-    lista.className = 'row-list';
-    lista.appendChild(crearRowCard('i-clock', 'var(--cian)', 'Antes o Después', 'Ordena los hechos en el tiempo', mostrarActividadOpcionMultiple));
-    lista.appendChild(crearRowCard('i-target', 'var(--morado)', 'Todo o una parte', 'Acción completa o en desarrollo', mostrarActividadTodoParte));
-    lista.appendChild(crearRowCard('i-book', 'var(--fuxia)', '¿Cómo era? o ¿Cómo fue?', 'Descripción o acción puntual', mostrarActividadComoEraOFue));
-    appContainer.appendChild(lista);
-
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver a Jugar';
-    botonVolver.onclick = mostrarSubMenuPracticar;
-    botonVolver.classList.add('back-button');
-    appContainer.appendChild(botonVolver);
+    appContainer.innerHTML = `
+        <div class="screen screen--submenu">
+            <div class="screen__header">
+                <button class="screen__back" id="smi-volver">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                </button>
+                <h1 class="screen__title">Indef. o Imperf.</h1>
+            </div>
+            <div class="menu-rows">
+                <button class="menu-row" id="smi-antes">
+                    <span class="menu-row__num">01</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Antes o Después</span>
+                        <span class="menu-row__sub">¿La acción es anterior o posterior?</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="smi-todo">
+                    <span class="menu-row__num">02</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Todo o una parte</span>
+                        <span class="menu-row__sub">¿La acción es completa o parcial?</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="smi-como">
+                    <span class="menu-row__num">03</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">¿Cómo era? o ¿Cómo fue?</span>
+                        <span class="menu-row__sub">Descripción vs acción concreta</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+            </div>
+        </div>
+    `;
+    document.getElementById('smi-antes').onclick  = mostrarActividadOpcionMultiple;
+    document.getElementById('smi-todo').onclick   = mostrarActividadTodoParte;
+    document.getElementById('smi-como').onclick   = mostrarActividadComoEraOFue;
+    document.getElementById('smi-volver').onclick = mostrarSubMenuPracticar;
 }
 
-
-// --- FUNCIÓN PRINCIPAL PARA LA ACTIVIDAD "ANTES O DESPUÉS" (ADAPTADA Y CORREGIDA) ---
 function mostrarActividadOpcionMultiple() {
     limpiarContenedor();
-    setGameBackground(true);
 
     // Obtener los datos de la actividad "Antes o Después"
     const actividadData = actividadesIndefinidoImperfectoData.antes_o_despues;
@@ -2458,14 +2310,14 @@ function mostrarActividadOpcionMultiple() {
     activityWrapper.style.maxWidth = '800px';
     activityWrapper.style.margin = '20px auto';
     activityWrapper.style.padding = '25px';
-    activityWrapper.style.backgroundColor = 'rgba(255,255,255,0.045)';
+    activityWrapper.style.backgroundColor = '#2a2a2a';
     activityWrapper.style.borderRadius = '12px';
     activityWrapper.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
-    activityWrapper.style.color = '#EDEDF5';
+    activityWrapper.style.color = '#D4EEFF';
 
     const tituloActividad = document.createElement('h2');
     tituloActividad.textContent = actividadData.titulo;
-    tituloActividad.style.color = '#00C8FF';
+    tituloActividad.style.color = '#66ccff';
     tituloActividad.style.textAlign = 'center';
     tituloActividad.style.marginBottom = '20px';
     activityWrapper.appendChild(tituloActividad);
@@ -2479,22 +2331,22 @@ function mostrarActividadOpcionMultiple() {
 
     // BLOQUE DE EXPLICACIÓN
     const explicacionBox = document.createElement('div');
-    explicacionBox.style.backgroundColor = '#0E0E1A';
+    explicacionBox.style.backgroundColor = '#3a3a3a';
     explicacionBox.style.padding = '15px';
     explicacionBox.style.borderRadius = '8px';
     explicacionBox.style.marginBottom = '30px';
-    explicacionBox.style.border = '1px solid rgba(255,255,255,0.12)';
+    explicacionBox.style.border = '1px solid #555';
 
     const explicacionTitulo = document.createElement('h3');
     explicacionTitulo.textContent = actividadData.explicacionUso.titulo;
-    explicacionTitulo.style.color = '#00C8FF';
+    explicacionTitulo.style.color = '#00f0f0';
     explicacionTitulo.style.marginBottom = '15px';
     explicacionBox.appendChild(explicacionTitulo);
 
     actividadData.explicacionUso.secciones.forEach(sec => {
         const subTitulo = document.createElement('h4');
         subTitulo.textContent = sec.subtitulo;
-        subTitulo.style.color = '#EDEDF5';
+        subTitulo.style.color = '#D4EEFF';
         subTitulo.style.marginBottom = '5px';
         explicacionBox.appendChild(subTitulo);
 
@@ -2506,7 +2358,7 @@ function mostrarActividadOpcionMultiple() {
         const ejemplo = document.createElement('p');
         ejemplo.innerHTML = `<em>Ejemplo: ${sec.ejemplo}</em>`;
         ejemplo.style.fontSize = '0.9em';
-        ejemplo.style.color = '#9A9AB0';
+        ejemplo.style.color = '#B0C4DE';
         ejemplo.style.marginBottom = '15px';
         explicacionBox.appendChild(ejemplo);
     });
@@ -2524,8 +2376,8 @@ function mostrarActividadOpcionMultiple() {
     feedbackContainer.style.marginTop = '20px';
     feedbackContainer.style.padding = '10px';
     feedbackContainer.style.borderRadius = '8px';
-    feedbackContainer.style.backgroundColor = 'rgba(255,255,255,0.07)';
-    feedbackContainer.style.color = '#EDEDF5';
+    feedbackContainer.style.backgroundColor = '#4a4a4a';
+    feedbackContainer.style.color = '#D4EEFF';
     feedbackContainer.style.display = 'none';
     activityWrapper.appendChild(feedbackContainer);
 
@@ -2573,7 +2425,7 @@ function cargarPreguntaOpcionMultiple(preguntas) { // 'preguntas' aquí es 'shuf
 
         const preguntaDiv = document.createElement('div');
         preguntaDiv.classList.add('pregunta-item');
-        preguntaDiv.style.backgroundColor = 'rgba(255,255,255,0.07)';
+        preguntaDiv.style.backgroundColor = '#4a4a4a';
         preguntaDiv.style.padding = '20px';
         preguntaDiv.style.borderRadius = '10px';
         preguntaDiv.style.marginBottom = '20px';
@@ -2595,13 +2447,13 @@ function cargarPreguntaOpcionMultiple(preguntas) { // 'preguntas' aquí es 'shuf
             const label = document.createElement('label');
             label.style.display = 'flex';
             label.style.alignItems = 'center';
-            label.style.backgroundColor = 'rgba(255,255,255,0.10)';
+            label.style.backgroundColor = '#5a5a5a';
             label.style.padding = '10px 15px';
             label.style.borderRadius = '8px';
             label.style.cursor = 'pointer';
             label.style.transition = 'background-color 0.2s';
-            label.onmouseover = () => label.style.backgroundColor = 'rgba(0,200,255,0.15)';
-            label.onmouseout = () => label.style.backgroundColor = 'rgba(255,255,255,0.10)';
+            label.onmouseover = () => label.style.backgroundColor = '#6a6a6a';
+            label.onmouseout = () => label.style.backgroundColor = '#5a5a5a';
 
             const radio = document.createElement('input');
             radio.type = 'radio';
@@ -2652,22 +2504,22 @@ function comprobarRespuestaOpcionMultiple() { // Ya no necesita el parámetro 'p
     feedbackContainer.style.display = 'block'; 
 
     if (respuestaUsuario === null) {
-        feedbackContainer.innerHTML = '<span style="color: #FACC15; font-weight: bold;">Por favor, selecciona una opción.</span>';
+        feedbackContainer.innerHTML = '<span style="color: #FFA500; font-weight: bold;">Por favor, selecciona una opción.</span>';
         return; 
     }
 
     const isCorrect = (removeAccents(respuestaUsuario.toLowerCase()) === removeAccents(preguntaActual.respuestaCorrecta.toLowerCase())); 
     
     if (isCorrect) {
-        feedbackContainer.innerHTML = `<span style="color: #39FF14; font-weight: bold;">¡Correcto!</span>`;
+        feedbackContainer.innerHTML = `<span style="color: #90EE90; font-weight: bold;">¡Correcto!</span>`;
         respuestasUsuarioOpcionMultiple.push(true);
     } else {
-        feedbackContainer.innerHTML = `<span style="color: #FF4D6D; font-weight: bold;">Incorrecto.</span> La respuesta correcta era: "${preguntaActual.respuestaCorrecta}".`;
+        feedbackContainer.innerHTML = `<span style="color: #FF6347; font-weight: bold;">Incorrecto.</span> La respuesta correcta era: "${preguntaActual.respuestaCorrecta}".`;
         respuestasUsuarioOpcionMultiple.push(false);
     }
 
     if (preguntaActual.explicacion) {
-        feedbackContainer.innerHTML += `<p style="font-size: 0.95em; color: #C4C4D6; margin-top: 10px;">${preguntaActual.explicacion}</p>`;
+        feedbackContainer.innerHTML += `<p style="font-size: 0.95em; color: #D4EEFF; margin-top: 10px;">${preguntaActual.explicacion}</p>`;
     }
 
     radios.forEach(radio => radio.disabled = true);
@@ -2691,7 +2543,7 @@ function mostrarResultadosOpcionMultiple() {
 
     preguntasContainer.innerHTML = '';
     feedbackContainer.style.display = 'block';
-    feedbackContainer.style.backgroundColor = '#0E0E1A';
+    feedbackContainer.style.backgroundColor = '#3a3a3a';
     feedbackContainer.style.padding = '25px';
     feedbackContainer.style.borderRadius = '12px';
     feedbackContainer.style.textAlign = 'center';
@@ -2701,9 +2553,9 @@ function mostrarResultadosOpcionMultiple() {
     const porcentaje = (correctas / total) * 100;
 
     feedbackContainer.innerHTML = `
-        <h3 style="color: #00C8FF; margin-bottom: 15px;">Resultados de la Actividad:</h3>
+        <h3 style="color: #66ccff; margin-bottom: 15px;">Resultados de la Actividad:</h3>
         <p style="font-size: 1.1em;">Has acertado ${correctas} de ${total} preguntas.</p>
-        <p style="font-size: 1.5em; font-weight: bold; color: ${porcentaje >= 70 ? '#39FF14' : '#FF4D6D'};">${porcentaje.toFixed(0)}% de aciertos</p>
+        <p style="font-size: 1.5em; font-weight: bold; color: ${porcentaje >= 70 ? '#90EE90' : '#FF6347'};">${porcentaje.toFixed(0)}% de aciertos</p>
     `;
 
     botonComprobarSiguiente.textContent = 'Reiniciar Actividad';
@@ -2723,7 +2575,6 @@ function mostrarResultadosOpcionMultiple() {
 
 function mostrarActividadTodoParte() {
     limpiarContenedor();
-    setGameBackground(true);
 
     const actividadData = actividadesIndefinidoImperfectoData.todo_o_una_parte;
     // ----- CAMBIOS AQUÍ para aleatorizar "Todo o una parte" -----
@@ -2736,14 +2587,14 @@ function mostrarActividadTodoParte() {
     activityWrapper.style.maxWidth = '800px';
     activityWrapper.style.margin = '20px auto';
     activityWrapper.style.padding = '25px';
-    activityWrapper.style.backgroundColor = 'rgba(255,255,255,0.045)';
+    activityWrapper.style.backgroundColor = '#2a2a2a';
     activityWrapper.style.borderRadius = '12px';
     activityWrapper.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
-    activityWrapper.style.color = '#EDEDF5';
+    activityWrapper.style.color = '#D4EEFF';
 
     const tituloActividad = document.createElement('h2');
     tituloActividad.textContent = actividadData.titulo;
-    tituloActividad.style.color = '#00C8FF';
+    tituloActividad.style.color = '#66ccff';
     tituloActividad.style.textAlign = 'center';
     tituloActividad.style.marginBottom = '20px';
     activityWrapper.appendChild(tituloActividad);
@@ -2757,22 +2608,22 @@ function mostrarActividadTodoParte() {
 
     // Sección de Explicación (como en tus imágenes)
     const explicacionBox = document.createElement('div');
-    explicacionBox.style.backgroundColor = '#0E0E1A';
+    explicacionBox.style.backgroundColor = '#3a3a3a';
     explicacionBox.style.padding = '15px';
     explicacionBox.style.borderRadius = '8px';
     explicacionBox.style.marginBottom = '30px';
-    explicacionBox.style.border = '1px solid rgba(255,255,255,0.12)';
+    explicacionBox.style.border = '1px solid #555';
 
     const explicacionTitulo = document.createElement('h3');
     explicacionTitulo.textContent = actividadData.explicacionUso.titulo;
-    explicacionTitulo.style.color = '#00C8FF';
+    explicacionTitulo.style.color = '#00f0f0';
     explicacionTitulo.style.marginBottom = '15px';
     explicacionBox.appendChild(explicacionTitulo);
 
     actividadData.explicacionUso.secciones.forEach(sec => {
         const subTitulo = document.createElement('h4');
         subTitulo.textContent = sec.subtitulo;
-        subTitulo.style.color = '#EDEDF5';
+        subTitulo.style.color = '#D4EEFF';
         subTitulo.style.marginBottom = '5px';
         explicacionBox.appendChild(subTitulo);
 
@@ -2784,7 +2635,7 @@ function mostrarActividadTodoParte() {
         const ejemplo = document.createElement('p');
         ejemplo.innerHTML = `<em>Ejemplo: ${sec.ejemplo}</em>`;
         ejemplo.style.fontSize = '0.9em';
-        ejemplo.style.color = '#9A9AB0';
+        ejemplo.style.color = '#B0C4DE';
         ejemplo.style.marginBottom = '15px';
         explicacionBox.appendChild(ejemplo);
     });
@@ -2801,8 +2652,8 @@ function mostrarActividadTodoParte() {
     feedbackContainer.style.marginTop = '20px';
     feedbackContainer.style.padding = '10px';
     feedbackContainer.style.borderRadius = '8px';
-    feedbackContainer.style.backgroundColor = 'rgba(255,255,255,0.07)';
-    feedbackContainer.style.color = '#EDEDF5';
+    feedbackContainer.style.backgroundColor = '#4a4a4a';
+    feedbackContainer.style.color = '#D4EEFF';
     feedbackContainer.style.display = 'none';
     activityWrapper.appendChild(feedbackContainer);
 
@@ -2845,14 +2696,14 @@ function cargarPreguntaTodoParte(preguntas) {
 
         const preguntaDiv = document.createElement('div');
         preguntaDiv.classList.add('pregunta-item');
-        preguntaDiv.style.backgroundColor = 'rgba(255,255,255,0.07)';
+        preguntaDiv.style.backgroundColor = '#4a4a4a';
         preguntaDiv.style.padding = '20px';
         preguntaDiv.style.borderRadius = '10px';
         preguntaDiv.style.marginBottom = '20px';
 
         const fraseP = document.createElement('p');
         // Usamos innerHTML para reemplazar el ____ con un campo de entrada
-        fraseP.innerHTML = `<strong>${pregunta.fraseConHueco.replace('____', `<input type="text" id="respuesta-todo-parte" class="text-input" placeholder="Escribe aquí el verbo" style="font-size: 1.2em; padding: 8px; border-radius: 5px; border: 1px solid #00C8FF; background-color: #0E0E1A; color: #EDEDF5; width: 180px;">`)}</strong>`;
+        fraseP.innerHTML = `<strong>${pregunta.fraseConHueco.replace('____', `<input type="text" id="respuesta-todo-parte" class="text-input" placeholder="Escribe aquí el verbo" style="font-size: 1.2em; padding: 8px; border-radius: 5px; border: 1px solid #66ccff; background-color: #3a3a3a; color: #D4EEFF; width: 180px;">`)}</strong>`;
         fraseP.style.fontSize = '1.2em';
         fraseP.style.marginBottom = '15px';
         preguntaDiv.appendChild(fraseP);
@@ -2885,23 +2736,23 @@ function comprobarRespuestaTodoParte(preguntas) {
     feedbackContainer.style.display = 'block';
 
     if (!respuestaUsuario) {
-        feedbackContainer.innerHTML = '<span style="color: #FACC15; font-weight: bold;">Por favor, escribe una respuesta.</span>';
+        feedbackContainer.innerHTML = '<span style="color: #FFA500; font-weight: bold;">Por favor, escribe una respuesta.</span>';
         return;
     }
 
     const esCorrecta = (respuestaUsuario === removeAccents(pregunta.respuestaCorrecta.trim().toLowerCase()));
 
     if (esCorrecta) {
-        feedbackContainer.innerHTML = `<span style="color: #39FF14; font-weight: bold;">¡Correcto!</span>`;
+        feedbackContainer.innerHTML = `<span style="color: #90EE90; font-weight: bold;">¡Correcto!</span>`;
         respuestasUsuarioTodoParte.push(true);
     } else {
-        feedbackContainer.innerHTML = `<span style="color: #FF4D6D; font-weight: bold;">Incorrecto.</span> La respuesta correcta era: "${pregunta.respuestaCorrecta}".`;
+        feedbackContainer.innerHTML = `<span style="color: #FF6347; font-weight: bold;">Incorrecto.</span> La respuesta correcta era: "${pregunta.respuestaCorrecta}".`;
         respuestasUsuarioTodoParte.push(false);
     }
 
     // Mostrar la explicación si existe (ahora añadiremos el campo 'explicacion' a los datos)
     if (pregunta.explicacionCorrecta) {
-        feedbackContainer.innerHTML += `<p style="font-size: 0.95em; color: #C4C4D6; margin-top: 10px;">${pregunta.explicacionCorrecta}</p>`;
+        feedbackContainer.innerHTML += `<p style="font-size: 0.95em; color: #D4EEFF; margin-top: 10px;">${pregunta.explicacionCorrecta}</p>`;
     }
     // ----------------------------------------------------
 
@@ -2923,7 +2774,7 @@ function mostrarResultadosTodoParte() {
 
     preguntasContainer.innerHTML = '';
     feedbackContainer.style.display = 'block';
-    feedbackContainer.style.backgroundColor = '#0E0E1A';
+    feedbackContainer.style.backgroundColor = '#3a3a3a';
     feedbackContainer.style.padding = '25px';
     feedbackContainer.style.borderRadius = '12px';
     feedbackContainer.style.textAlign = 'center';
@@ -2933,9 +2784,9 @@ function mostrarResultadosTodoParte() {
     const porcentaje = (correctas / total) * 100;
 
     feedbackContainer.innerHTML = `
-        <h3 style="color: #00C8FF; margin-bottom: 15px;">Resultados de la Actividad:</h3>
+        <h3 style="color: #66ccff; margin-bottom: 15px;">Resultados de la Actividad:</h3>
         <p style="font-size: 1.1em;">Has acertado ${correctas} de ${total} preguntas.</p>
-        <p style="font-size: 1.5em; font-weight: bold; color: ${porcentaje >= 70 ? '#39FF14' : '#FF4D6D'};">${porcentaje.toFixed(0)}% de aciertos</p>
+        <p style="font-size: 1.5em; font-weight: bold; color: ${porcentaje >= 70 ? '#90EE90' : '#FF6347'};">${porcentaje.toFixed(0)}% de aciertos</p>
     `;
 
     botonComprobarSiguiente.textContent = 'Reiniciar Actividad';
@@ -2954,7 +2805,6 @@ function mostrarResultadosTodoParte() {
 // --- FUNCIÓN PRINCIPAL PARA LA ACTIVIDAD "¿CÓMO ERA? O ¿CÓMO FUE?" ---
 function mostrarActividadComoEraOFue() {
     limpiarContenedor();
-    setGameBackground(true);
 
     // Obtener los datos de la actividad
     const actividadData = actividadesIndefinidoImperfectoData.como_era_o_fue;
@@ -2969,14 +2819,14 @@ function mostrarActividadComoEraOFue() {
     activityWrapper.style.maxWidth = '800px';
     activityWrapper.style.margin = '20px auto';
     activityWrapper.style.padding = '25px';
-    activityWrapper.style.backgroundColor = 'rgba(255,255,255,0.045)';
+    activityWrapper.style.backgroundColor = '#2a2a2a';
     activityWrapper.style.borderRadius = '12px';
     activityWrapper.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
-    activityWrapper.style.color = '#EDEDF5';
+    activityWrapper.style.color = '#D4EEFF';
 
     const tituloActividad = document.createElement('h2');
     tituloActividad.textContent = actividadData.titulo;
-    tituloActividad.style.color = '#00C8FF';
+    tituloActividad.style.color = '#66ccff';
     tituloActividad.style.textAlign = 'center';
     tituloActividad.style.marginBottom = '20px';
     activityWrapper.appendChild(tituloActividad);
@@ -2990,22 +2840,22 @@ function mostrarActividadComoEraOFue() {
 
     // BLOQUE DE EXPLICACIÓN (Reutilizamos la estructura)
     const explicacionBox = document.createElement('div');
-    explicacionBox.style.backgroundColor = '#0E0E1A';
+    explicacionBox.style.backgroundColor = '#3a3a3a';
     explicacionBox.style.padding = '15px';
     explicacionBox.style.borderRadius = '8px';
     explicacionBox.style.marginBottom = '30px';
-    explicacionBox.style.border = '1px solid rgba(255,255,255,0.12)';
+    explicacionBox.style.border = '1px solid #555';
 
     const explicacionTitulo = document.createElement('h3');
     explicacionTitulo.textContent = actividadData.explicacionUso.titulo;
-    explicacionTitulo.style.color = '#00C8FF';
+    explicacionTitulo.style.color = '#00f0f0';
     explicacionTitulo.style.marginBottom = '15px';
     explicacionBox.appendChild(explicacionTitulo);
 
     actividadData.explicacionUso.secciones.forEach(sec => {
         const subTitulo = document.createElement('h4');
         subTitulo.textContent = sec.subtitulo;
-        subTitulo.style.color = '#EDEDF5';
+        subTitulo.style.color = '#D4EEFF';
         subTitulo.style.marginBottom = '5px';
         explicacionBox.appendChild(subTitulo);
 
@@ -3017,7 +2867,7 @@ function mostrarActividadComoEraOFue() {
         const ejemplo = document.createElement('p');
         ejemplo.innerHTML = `<em>Ejemplo: ${sec.ejemplo}</em>`;
         ejemplo.style.fontSize = '0.9em';
-        ejemplo.style.color = '#9A9AB0';
+        ejemplo.style.color = '#B0C4DE';
         ejemplo.style.marginBottom = '15px';
         explicacionBox.appendChild(ejemplo);
     });
@@ -3035,8 +2885,8 @@ function mostrarActividadComoEraOFue() {
     feedbackContainer.style.marginTop = '20px';
     feedbackContainer.style.padding = '10px';
     feedbackContainer.style.borderRadius = '8px';
-    feedbackContainer.style.backgroundColor = 'rgba(255,255,255,0.07)';
-    feedbackContainer.style.color = '#EDEDF5';
+    feedbackContainer.style.backgroundColor = '#4a4a4a';
+    feedbackContainer.style.color = '#D4EEFF';
     feedbackContainer.style.display = 'none';
     activityWrapper.appendChild(feedbackContainer);
 
@@ -3081,7 +2931,7 @@ function cargarPreguntaComoEraOFue(preguntas) {
 
         const preguntaDiv = document.createElement('div');
         preguntaDiv.classList.add('pregunta-item');
-        preguntaDiv.style.backgroundColor = 'rgba(255,255,255,0.07)';
+        preguntaDiv.style.backgroundColor = '#4a4a4a';
         preguntaDiv.style.padding = '20px';
         preguntaDiv.style.borderRadius = '10px';
         preguntaDiv.style.marginBottom = '20px';
@@ -3100,10 +2950,10 @@ function cargarPreguntaComoEraOFue(preguntas) {
         inputRespuesta.classList.add('text-input');
         inputRespuesta.style.width = '100%'; // Asegura que ocupe el ancho disponible
         inputRespuesta.style.padding = '10px';
-        inputRespuesta.style.border = '1px solid rgba(255,255,255,0.12)';
+        inputRespuesta.style.border = '1px solid #555';
         inputRespuesta.style.borderRadius = '5px';
-        inputRespuesta.style.backgroundColor = '#0E0E1A';
-        inputRespuesta.style.color = '#EDEDF5';
+        inputRespuesta.style.backgroundColor = '#3a3a3a';
+        inputRespuesta.style.color = '#D4EEFF';
         preguntaDiv.appendChild(inputRespuesta);
 
         preguntasContainer.appendChild(preguntaDiv);
@@ -3137,21 +2987,21 @@ function comprobarRespuestaComoEraOFue(preguntas) {
     feedbackContainer.style.display = 'block';
 
     if (!respuestaUsuario) {
-        feedbackContainer.innerHTML = '<span style="color: #FACC15; font-weight: bold;">Por favor, escribe una respuesta.</span>';
+        feedbackContainer.innerHTML = '<span style="color: #FFA500; font-weight: bold;">Por favor, escribe una respuesta.</span>';
         return;
     }
 
     if (respuestaUsuario === respuestaCorrecta) {
-        feedbackContainer.innerHTML = `<span style="color: #39FF14; font-weight: bold;">¡Correcto!</span>`;
+        feedbackContainer.innerHTML = `<span style="color: #90EE90; font-weight: bold;">¡Correcto!</span>`;
         respuestasUsuarioComoEraOFue.push(true);
     } else {
-        feedbackContainer.innerHTML = `<span style="color: #FF4D6D; font-weight: bold;">Incorrecto.</span> La respuesta correcta era: "${preguntaActual.respuestaCorrecta}".`;
+        feedbackContainer.innerHTML = `<span style="color: #FF6347; font-weight: bold;">Incorrecto.</span> La respuesta correcta era: "${preguntaActual.respuestaCorrecta}".`;
         respuestasUsuarioComoEraOFue.push(false);
     }
 
     // --- AÑADE ESTE BLOQUE para mostrar la explicación ---
     if (preguntaActual.explicacion) {
-        feedbackContainer.innerHTML += `<p style="font-size: 0.95em; color: #C4C4D6; margin-top: 10px;">${preguntaActual.explicacion}</p>`;
+        feedbackContainer.innerHTML += `<p style="font-size: 0.95em; color: #D4EEFF; margin-top: 10px;">${preguntaActual.explicacion}</p>`;
     }
     // ----------------------------------------------------
     
@@ -3177,7 +3027,7 @@ function mostrarResultadosComoEraOFue() {
 
     preguntasContainer.innerHTML = '';
     feedbackContainer.style.display = 'block';
-    feedbackContainer.style.backgroundColor = '#0E0E1A';
+    feedbackContainer.style.backgroundColor = '#3a3a3a';
     feedbackContainer.style.padding = '25px';
     feedbackContainer.style.borderRadius = '12px';
     feedbackContainer.style.textAlign = 'center';
@@ -3187,9 +3037,9 @@ function mostrarResultadosComoEraOFue() {
     const porcentaje = (correctas / total) * 100;
 
     feedbackContainer.innerHTML = `
-        <h3 style="color: #00C8FF; margin-bottom: 15px;">Resultados de la Actividad:</h3>
+        <h3 style="color: #66ccff; margin-bottom: 15px;">Resultados de la Actividad:</h3>
         <p style="font-size: 1.1em;">Has acertado ${correctas} de ${total} preguntas.</p>
-        <p style="font-size: 1.5em; font-weight: bold; color: ${porcentaje >= 70 ? '#39FF14' : '#FF4D6D'};">${porcentaje.toFixed(0)}% de aciertos</p>
+        <p style="font-size: 1.5em; font-weight: bold; color: ${porcentaje >= 70 ? '#90EE90' : '#FF6347'};">${porcentaje.toFixed(0)}% de aciertos</p>
     `;
 
     botonComprobarSiguiente.textContent = 'Reiniciar Actividad';
@@ -3206,258 +3056,158 @@ function mostrarResultadosComoEraOFue() {
  */
 function mostrarSubMenuTiemposVerbales() {
     limpiarContenedor();
-    setGameBackground(false);
-
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'ConJuanJugator';
-    appContainer.appendChild(titulo);
-
-    const instruccion = document.createElement('p');
-    instruccion.className = 'section-sub';
-    instruccion.textContent = 'Elige cómo quieres practicar la conjugación';
-    appContainer.appendChild(instruccion);
-
-    const lista = document.createElement('div');
-    lista.className = 'row-list';
-    lista.appendChild(crearRowCard('i-target', 'var(--fuxia)', 'Por Nivel', 'Todos los verbos con los tiempos de tu nivel', iniciarPracticaPorNivel));
-    lista.appendChild(crearRowCard('i-gear', 'var(--cian)', 'Configuración', 'Elige verbos, tiempos y corrección de acentos', mostrarMenuConfiguracion));
-    lista.appendChild(crearRowCard('i-pad', 'var(--morado)', 'Sin Configuración', 'Verbos y tiempos por defecto', () => mostrarActividadTiemposVerbales(tiemposSeleccionadosUsuario)));
-    appContainer.appendChild(lista);
-
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al Menú de Practicar';
-    botonVolver.onclick = mostrarSubMenuPracticar;
-    botonVolver.classList.add('back-button');
-    appContainer.appendChild(botonVolver);
-
+    appContainer.innerHTML = `
+        <div class="screen screen--submenu">
+            <div class="screen__header">
+                <button class="screen__back" id="sm-volver">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                </button>
+                <h1 class="screen__title">ConJuanJugator</h1>
+            </div>
+            <div class="menu-rows">
+                <button class="menu-row" id="sm-nivel">
+                    <span class="menu-row__num">01</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Por Nivel</span>
+                        <span class="menu-row__sub">Todos los verbos con los tiempos de tu nivel</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="sm-config">
+                    <span class="menu-row__num">02</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Configuración</span>
+                        <span class="menu-row__sub">Elige verbos, tiempos y acentos</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="sm-sinconfig">
+                    <span class="menu-row__num">03</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Sin Configuración</span>
+                        <span class="menu-row__sub">Verbos y tiempos por defecto</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+            </div>
+        </div>
+    `;
+    document.getElementById('sm-nivel').onclick    = iniciarPracticaPorNivel;
+    document.getElementById('sm-config').onclick   = mostrarMenuConfiguracion;
+    document.getElementById('sm-sinconfig').onclick = () => mostrarActividadTiemposVerbales(tiemposSeleccionadosUsuario);
+    document.getElementById('sm-volver').onclick   = mostrarSubMenuPracticar;
 }
 
-/**
- * Muestra el menú de configuración con opciones para tiempos y verbos
- */
 function mostrarMenuConfiguracion() {
     limpiarContenedor();
 
-    // Crear contenedor principal
-    const configContainer = document.createElement('div');
-    configContainer.style.backgroundColor = 'rgba(255,255,255,0.045)';
-    configContainer.style.color = '#EDEDF5';
-    configContainer.style.padding = '20px';
-    configContainer.style.borderRadius = '10px';
-    configContainer.style.margin = '20px auto';
-    configContainer.style.maxWidth = '600px';
-    configContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-    configContainer.style.textAlign = 'center';
-
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Configuración de Práctica';
-    titulo.style.color = '#00C8FF';
-    titulo.style.marginBottom = '30px';
-    configContainer.appendChild(titulo);
-
-    // Información actual
-    const infoActual = document.createElement('div');
-    infoActual.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    infoActual.style.padding = '15px';
-    infoActual.style.borderRadius = '8px';
-    infoActual.style.marginBottom = '30px';
-    infoActual.style.textAlign = 'left';
-
-    const infoTiempos = document.createElement('p');
-    infoTiempos.innerHTML = `<strong>Tiempos seleccionados:</strong> ${tiemposSeleccionadosUsuario.length} (${tiemposSeleccionadosUsuario.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')})`;
-    infoTiempos.style.marginBottom = '10px';
-
-    const infoVerbos = document.createElement('p');
-    const verbosTexto = verbosSeleccionadosUsuario.length <= 5 
+    const verbosTexto = verbosSeleccionadosUsuario.length <= 5
         ? verbosSeleccionadosUsuario.join(', ')
         : `${verbosSeleccionadosUsuario.slice(0, 5).join(', ')} y ${verbosSeleccionadosUsuario.length - 5} más`;
-    infoVerbos.innerHTML = `<strong>Verbos seleccionados:</strong> ${verbosSeleccionadosUsuario.length} (${verbosTexto})`;
 
-    infoActual.appendChild(infoTiempos);
-    infoActual.appendChild(infoVerbos);
-    configContainer.appendChild(infoActual);
+    appContainer.innerHTML = `
+        <h2 class="section-title">Configuración</h2>
+        <div class="config-card">
+            <div class="config-info-row">
+                <span class="config-info-label">⏱ Tiempos</span>
+                <span class="config-info-value">${tiemposSeleccionadosUsuario.length} seleccionados — ${tiemposSeleccionadosUsuario.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}</span>
+            </div>
+            <div class="config-info-row">
+                <span class="config-info-label">📝 Verbos</span>
+                <span class="config-info-value">${verbosSeleccionadosUsuario.length} seleccionados — ${verbosTexto}</span>
+            </div>
+        </div>
+        <div class="config-toggle-row">
+            <label class="config-toggle-label" for="checkbox-acentos">Activar corrección de acentos</label>
+            <input type="checkbox" id="checkbox-acentos" style="transform:scale(1.3);accent-color:#A0C4FF;cursor:pointer;">
+        </div>
+        <div class="submenu-list">
+            <button class="submenu-item" id="cfg-tiempos">
+                <span class="submenu-item__icon submenu-item__icon--blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="#7ec8f0"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></span>
+                <span class="submenu-item__body">
+                    <span class="submenu-item__title">Configurar Tiempos Verbales</span>
+                    <span class="submenu-item__desc">Selecciona qué tiempos practicar</span>
+                </span>
+                <span class="submenu-item__arrow">›</span>
+            </button>
+            <button class="submenu-item" id="cfg-verbos">
+                <span class="submenu-item__icon submenu-item__icon--pink"><svg width="20" height="20" viewBox="0 0 24 24" fill="#ff85b0"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span>
+                <span class="submenu-item__body">
+                    <span class="submenu-item__title">Configurar Verbos</span>
+                    <span class="submenu-item__desc">Elige los verbos que quieres practicar</span>
+                </span>
+                <span class="submenu-item__arrow">›</span>
+            </button>
+            <button class="submenu-item submenu-item--green" id="cfg-empezar">
+                <span class="submenu-item__icon submenu-item__icon--green"><svg width="20" height="20" viewBox="0 0 24 24" fill="#1DB954"><path d="M8 5v14l11-7z"/></svg></span>
+                <span class="submenu-item__body">
+                    <span class="submenu-item__title">Comenzar con configuración actual</span>
+                    <span class="submenu-item__desc">Usar los tiempos y verbos guardados</span>
+                </span>
+                <span class="submenu-item__arrow">›</span>
+            </button>
+        </div>
+        <button class="btn-back" id="cfg-volver">← ConJuanJugator</button>
+    `;
 
-    // Contenedor de la opción de corrección de acentos
-    const acentosConfig = document.createElement('div');
-    acentosConfig.style.display = 'flex';
-    acentosConfig.style.alignItems = 'center';
-    acentosConfig.style.justifyContent = 'space-between';
-    acentosConfig.style.padding = '10px';
-    acentosConfig.style.backgroundColor = 'rgba(255,255,255,0.06)';
-    acentosConfig.style.borderRadius = '8px';
-    acentosConfig.style.marginBottom = '20px';
+    const inputAcentos = document.getElementById('checkbox-acentos');
+    inputAcentos.checked = !corregirAcentos;
+    inputAcentos.onchange = (e) => { corregirAcentos = !e.target.checked; };
 
-    const labelAcentos = document.createElement('label');
-    labelAcentos.textContent = 'Activar corrección de acentos';
-    labelAcentos.style.fontWeight = 'bold';
-    labelAcentos.style.color = '#EDEDF5';
-    labelAcentos.htmlFor = 'checkbox-acentos';
-
-    const inputAcentos = document.createElement('input');
-    inputAcentos.type = 'checkbox';
-    inputAcentos.id = 'checkbox-acentos';
-    inputAcentos.checked = !corregirAcentos; // El estado del checkbox es el opuesto a corregirAcentos
-    inputAcentos.style.transform = 'scale(1.5)';
-    inputAcentos.style.cursor = 'pointer';
-
-    // Evento para actualizar la variable global
-    inputAcentos.onchange = (e) => {
-        corregirAcentos = !e.target.checked; // Si el checkbox está marcado, corregirAcentos es false.
-        console.log("Corrección de acentos:", corregirAcentos);
-    };
-
-    acentosConfig.appendChild(labelAcentos);
-    acentosConfig.appendChild(inputAcentos);
-    configContainer.appendChild(acentosConfig);
-
-    // Contenedor de botones de configuración
-    const botonesConfig = document.createElement('div');
-    botonesConfig.style.display = 'flex';
-    botonesConfig.style.flexDirection = 'column';
-    botonesConfig.style.gap = '15px';
-    botonesConfig.style.marginBottom = '30px';
-
-    // Botón configurar tiempos
-    const botonConfigTiempos = document.createElement('button');
-    botonConfigTiempos.textContent = 'Configurar Tiempos Verbales';
-    botonConfigTiempos.onclick = mostrarConfiguracionTiempos;
-    botonConfigTiempos.classList.add('menu-button');
-    botonConfigTiempos.style.padding = '15px 20px';
-    botonConfigTiempos.style.fontSize = '1.1em';
-
-    // Botón configurar verbos
-    const botonConfigVerbos = document.createElement('button');
-    botonConfigVerbos.textContent = 'Configurar Verbos';
-    botonConfigVerbos.onclick = mostrarConfiguracionVerbos;
-    botonConfigVerbos.classList.add('menu-button');
-    botonConfigVerbos.style.padding = '15px 20px';
-    botonConfigVerbos.style.fontSize = '1.1em';
-
-    botonesConfig.appendChild(botonConfigTiempos);
-    botonesConfig.appendChild(botonConfigVerbos);
-    configContainer.appendChild(botonesConfig);
-
-    // Botón comenzar práctica con configuración actual
-    const botonComenzarPractica = document.createElement('button');
-    botonComenzarPractica.textContent = 'Comenzar Práctica con Configuración Actual';
-    botonComenzarPractica.onclick = () => mostrarActividadTiemposVerbales(tiemposSeleccionadosUsuario);
-    botonComenzarPractica.style.backgroundColor = '#39FF14';
-    botonComenzarPractica.style.color = '#0A0A12';
-    botonComenzarPractica.style.fontWeight = '700';
-    botonComenzarPractica.style.border = 'none';
-    botonComenzarPractica.style.padding = '15px 25px';
-    botonComenzarPractica.style.borderRadius = '8px';
-    botonComenzarPractica.style.fontSize = '1.2em';
-    botonComenzarPractica.style.fontWeight = 'bold';
-    botonComenzarPractica.style.cursor = 'pointer';
-    botonComenzarPractica.style.marginBottom = '20px';
-
-    // Botón volver
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al submenú';
-    botonVolver.onclick = mostrarSubMenuTiemposVerbales;
-    botonVolver.classList.add('back-button');
-
-    configContainer.appendChild(botonComenzarPractica);
-    configContainer.appendChild(botonVolver);
-    appContainer.appendChild(configContainer);
+    document.getElementById('cfg-tiempos').onclick  = mostrarConfiguracionTiempos;
+    document.getElementById('cfg-verbos').onclick   = mostrarConfiguracionVerbos;
+    document.getElementById('cfg-empezar').onclick  = () => mostrarActividadTiemposVerbales(tiemposSeleccionadosUsuario);
+    document.getElementById('cfg-volver').onclick   = mostrarSubMenuTiemposVerbales;
 }
 
 function mostrarConfiguracionTiempos() {
     limpiarContenedor();
 
-    const configContainer = document.createElement('div');
-    configContainer.style.backgroundColor = 'rgba(255,255,255,0.045)';
-    configContainer.style.color = '#EDEDF5';
-    configContainer.style.padding = '20px';
-    configContainer.style.borderRadius = '10px';
-    configContainer.style.margin = '20px auto';
-    configContainer.style.maxWidth = '600px';
-    configContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-    configContainer.style.textAlign = 'center';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'config-page';
+    wrapper.innerHTML = `<h2 class="section-title">⏱ Seleccionar Tiempos Verbales</h2>`;
 
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Seleccionar Tiempos Verbales';
-    titulo.style.color = '#00C8FF';
-    configContainer.appendChild(titulo);
-
-    const checkboxesContainer = document.createElement('div');
-    checkboxesContainer.className = 'checkboxes-container-tiempos';
-    checkboxesContainer.style.display = 'grid';
-    checkboxesContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
-    checkboxesContainer.style.gap = '10px';
-    checkboxesContainer.style.marginTop = '20px';
-    checkboxesContainer.style.marginBottom = '30px';
-
-    // Botones Seleccionar todo / Deseleccionar todo (tiempos)
-    const toggleTiemposBar = document.createElement('div');
-    toggleTiemposBar.style.display = 'flex';
-    toggleTiemposBar.style.gap = '10px';
-    toggleTiemposBar.style.justifyContent = 'center';
-    toggleTiemposBar.style.flexWrap = 'wrap';
-    toggleTiemposBar.style.marginTop = '14px';
-
-    const setTodosTiempos = (estado) => {
-        checkboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = estado; });
-    };
-    const btnTodosTiempos = document.createElement('button');
-    btnTodosTiempos.textContent = 'Seleccionar todo';
-    btnTodosTiempos.className = 'mini-toggle-btn';
-    btnTodosTiempos.onclick = () => setTodosTiempos(true);
-    const btnNingunoTiempos = document.createElement('button');
-    btnNingunoTiempos.textContent = 'Deseleccionar todo';
-    btnNingunoTiempos.className = 'mini-toggle-btn';
-    btnNingunoTiempos.onclick = () => setTodosTiempos(false);
-    toggleTiemposBar.appendChild(btnTodosTiempos);
-    toggleTiemposBar.appendChild(btnNingunoTiempos);
-    configContainer.appendChild(toggleTiemposBar);
+    const grid = document.createElement('div');
+    grid.className = 'checkboxes-container-tiempos config-grid';
 
     todosLosTiemposVerbales.forEach(tiempo => {
-        const divTiempo = document.createElement('div');
-        divTiempo.style.display = 'flex';
-        divTiempo.style.alignItems = 'center';
-        divTiempo.style.justifyContent = 'flex-start';
-        divTiempo.style.padding = '8px';
-        divTiempo.style.backgroundColor = 'rgba(255,255,255,0.06)';
-        divTiempo.style.borderRadius = '8px';
-        divTiempo.style.border = '1px solid rgba(255,255,255,0.12)';
+        const item = document.createElement('label');
+        item.className = 'config-check-item';
+        item.htmlFor = `checkbox-tiempo-${tiempo}`;
 
-        const inputCheckbox = document.createElement('input');
-        inputCheckbox.type = 'checkbox';
-        inputCheckbox.id = `checkbox-tiempo-${tiempo}`;
-        inputCheckbox.value = tiempo;
-        inputCheckbox.checked = tiemposSeleccionadosUsuario.includes(tiempo);
-        inputCheckbox.style.marginRight = '10px';
-        inputCheckbox.style.transform = 'scale(1.2)';
-        inputCheckbox.style.cursor = 'pointer';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id = `checkbox-tiempo-${tiempo}`;
+        cb.value = tiempo;
+        cb.checked = tiemposSeleccionadosUsuario.includes(tiempo);
 
-        const labelCheckbox = document.createElement('label');
-        labelCheckbox.htmlFor = `checkbox-tiempo-${tiempo}`;
-        labelCheckbox.textContent = tiempo.charAt(0).toUpperCase() + tiempo.slice(1);
-        labelCheckbox.style.color = '#EDEDF5';
-        labelCheckbox.style.cursor = 'pointer';
+        const lbl = document.createElement('span');
+        lbl.textContent = tiempo.charAt(0).toUpperCase() + tiempo.slice(1);
 
-        divTiempo.appendChild(inputCheckbox);
-        divTiempo.appendChild(labelCheckbox);
-        checkboxesContainer.appendChild(divTiempo);
+        item.appendChild(cb);
+        item.appendChild(lbl);
+        grid.appendChild(item);
     });
 
-    configContainer.appendChild(checkboxesContainer);
+    wrapper.appendChild(grid);
 
-    const guardarConfigBoton = document.createElement('button');
-    guardarConfigBoton.textContent = 'Guardar y Volver';
-    guardarConfigBoton.onclick = guardarConfiguracionTiempos;
-    guardarConfigBoton.classList.add('menu-button');
-    guardarConfigBoton.style.marginRight = '15px';
+    const btnGuardar = document.createElement('button');
+    btnGuardar.textContent = '✓ Guardar y Volver';
+    btnGuardar.className = 'btn-primary';
+    btnGuardar.onclick = guardarConfiguracionTiempos;
 
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Cancelar';
-    botonVolver.onclick = mostrarMenuConfiguracion;
-    botonVolver.classList.add('back-button');
+    const btnCancelar = document.createElement('button');
+    btnCancelar.textContent = '← Cancelar';
+    btnCancelar.className = 'btn-back';
+    btnCancelar.onclick = mostrarMenuConfiguracion;
 
-    configContainer.appendChild(guardarConfigBoton);
-    configContainer.appendChild(botonVolver);
-    appContainer.appendChild(configContainer);
+    const actions = document.createElement('div');
+    actions.className = 'config-actions';
+    actions.appendChild(btnGuardar);
+    actions.appendChild(btnCancelar);
+
+    wrapper.appendChild(actions);
+    appContainer.appendChild(wrapper);
 }
 
 /**
@@ -3466,130 +3216,77 @@ function mostrarConfiguracionTiempos() {
 function mostrarConfiguracionVerbos() {
     limpiarContenedor();
 
-    const configContainer = document.createElement('div');
-    configContainer.style.backgroundColor = 'rgba(255,255,255,0.045)';
-    configContainer.style.color = '#EDEDF5';
-    configContainer.style.padding = '20px';
-    configContainer.style.borderRadius = '10px';
-    configContainer.style.margin = '20px auto';
-    configContainer.style.maxWidth = '800px';
-    configContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-    configContainer.style.textAlign = 'center';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'config-page';
+    wrapper.innerHTML = `<h2 class="section-title">📝 Seleccionar Verbos</h2>`;
 
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Seleccionar Verbos para Practicar';
-    titulo.style.color = '#00C8FF';
-    configContainer.appendChild(titulo);
+    const quickActions = document.createElement('div');
+    quickActions.className = 'config-quick-actions';
+    const btnTodos = document.createElement('button');
+    btnTodos.textContent = '✓ Todos';
+    btnTodos.className = 'btn-accent-green';
+    btnTodos.onclick = () => toggleTodosLosVerbos(true);
+    const btnNinguno = document.createElement('button');
+    btnNinguno.textContent = '✗ Ninguno';
+    btnNinguno.className = 'btn-accent-red';
+    btnNinguno.onclick = () => toggleTodosLosVerbos(false);
+    quickActions.appendChild(btnTodos);
+    quickActions.appendChild(btnNinguno);
+    wrapper.appendChild(quickActions);
 
-    // Botones de selección rápida
-    const botonesSeleccion = document.createElement('div');
-    botonesSeleccion.style.marginBottom = '20px';
-    botonesSeleccion.style.display = 'flex';
-    botonesSeleccion.style.gap = '10px';
-    botonesSeleccion.style.justifyContent = 'center';
-
-    const botonTodos = document.createElement('button');
-    botonTodos.textContent = 'Todos';
-    botonTodos.onclick = () => toggleTodosLosVerbos(true);
-    botonTodos.style.padding = '8px 15px';
-    botonTodos.style.backgroundColor = '#39FF14';
-    botonTodos.style.color = '#0A0A12';
-    botonTodos.style.border = 'none';
-    botonTodos.style.borderRadius = '5px';
-    botonTodos.style.cursor = 'pointer';
-
-    const botonNinguno = document.createElement('button');
-    botonNinguno.textContent = 'Ninguno';
-    botonNinguno.onclick = () => toggleTodosLosVerbos(false);
-    botonNinguno.style.padding = '8px 15px';
-    botonNinguno.style.backgroundColor = '#FF4D6D';
-    botonNinguno.style.color = '#EDEDF5';
-    botonNinguno.style.border = 'none';
-    botonNinguno.style.borderRadius = '5px';
-    botonNinguno.style.cursor = 'pointer';
-
-    botonesSeleccion.appendChild(botonTodos);
-    botonesSeleccion.appendChild(botonNinguno);
-    configContainer.appendChild(botonesSeleccion);
-
-    // Contenedor con scroll para los verbos
-    const scrollContainer = document.createElement('div');
-    scrollContainer.style.maxHeight = '300px';
-    scrollContainer.style.overflowY = 'auto';
-    scrollContainer.style.border = '1px solid rgba(255,255,255,0.12)';
-    scrollContainer.style.borderRadius = '5px';
-    scrollContainer.style.padding = '15px';
-    scrollContainer.style.backgroundColor = 'rgba(255,255,255,0.03)';
-    scrollContainer.style.marginBottom = '20px';
+    const scrollBox = document.createElement('div');
+    scrollBox.className = 'config-scroll-box';
 
     const checkboxesContainer = document.createElement('div');
-    checkboxesContainer.className = 'checkboxes-container-verbos';
-    checkboxesContainer.style.display = 'grid';
-    checkboxesContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(150px, 1fr))';
-    checkboxesContainer.style.gap = '8px';
+    checkboxesContainer.className = 'checkboxes-container-verbos config-verbs-grid';
 
     const verbosOrdenados = [...verbosCapitalizados].sort();
     verbosOrdenados.forEach(verbo => {
-        const divVerbo = document.createElement('div');
-        divVerbo.style.display = 'flex';
-        divVerbo.style.alignItems = 'center';
-        divVerbo.style.padding = '4px 6px';
-        divVerbo.style.backgroundColor = 'rgba(255,255,255,0.06)';
-        divVerbo.style.borderRadius = '3px';
-        divVerbo.style.border = '1px solid rgba(255,255,255,0.12)';
+        const item = document.createElement('label');
+        item.className = 'config-check-item';
+        item.htmlFor = `checkbox-verbo-${verbo}`;
 
-        const inputCheckbox = document.createElement('input');
-        inputCheckbox.type = 'checkbox';
-        inputCheckbox.id = `checkbox-verbo-${verbo}`;
-        inputCheckbox.value = verbo;
-        inputCheckbox.checked = verbosSeleccionadosUsuario.includes(verbo);
-        inputCheckbox.style.marginRight = '6px';
-        inputCheckbox.style.cursor = 'pointer';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id = `checkbox-verbo-${verbo}`;
+        cb.value = verbo;
+        cb.checked = verbosSeleccionadosUsuario.includes(verbo);
+        cb.addEventListener('change', actualizarContadorVerbos);
 
-        const labelCheckbox = document.createElement('label');
-        labelCheckbox.htmlFor = `checkbox-verbo-${verbo}`;
-        labelCheckbox.textContent = verbo;
-        labelCheckbox.style.fontSize = '0.85em';
-        labelCheckbox.style.cursor = 'pointer';
+        const lbl = document.createElement('span');
+        lbl.textContent = verbo;
 
-        divVerbo.appendChild(inputCheckbox);
-        divVerbo.appendChild(labelCheckbox);
-        checkboxesContainer.appendChild(divVerbo);
+        item.appendChild(cb);
+        item.appendChild(lbl);
+        checkboxesContainer.appendChild(item);
     });
 
-    scrollContainer.appendChild(checkboxesContainer);
-    configContainer.appendChild(scrollContainer);
+    scrollBox.appendChild(checkboxesContainer);
+    wrapper.appendChild(scrollBox);
 
-    // Contador de verbos seleccionados
     const contador = document.createElement('div');
     contador.id = 'contador-verbos';
-    contador.style.marginBottom = '20px';
-    contador.style.padding = '10px';
-    contador.style.backgroundColor = 'rgba(0,200,255,0.06)';
-    contador.style.borderRadius = '5px';
+    contador.className = 'config-counter';
+    wrapper.appendChild(contador);
     actualizarContadorVerbos();
 
-    configContainer.appendChild(contador);
+    const btnGuardar = document.createElement('button');
+    btnGuardar.textContent = '✓ Guardar y Volver';
+    btnGuardar.className = 'btn-primary';
+    btnGuardar.onclick = guardarConfiguracionVerbos;
 
-    // Event listeners para actualizar contador
-    checkboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', actualizarContadorVerbos);
-    });
+    const btnCancelar = document.createElement('button');
+    btnCancelar.textContent = '← Cancelar';
+    btnCancelar.className = 'btn-back';
+    btnCancelar.onclick = mostrarMenuConfiguracion;
 
-    const guardarConfigBoton = document.createElement('button');
-    guardarConfigBoton.textContent = 'Guardar y Volver';
-    guardarConfigBoton.onclick = guardarConfiguracionVerbos;
-    guardarConfigBoton.classList.add('menu-button');
-    guardarConfigBoton.style.marginRight = '15px';
+    const actions = document.createElement('div');
+    actions.className = 'config-actions';
+    actions.appendChild(btnGuardar);
+    actions.appendChild(btnCancelar);
+    wrapper.appendChild(actions);
 
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Cancelar';
-    botonVolver.onclick = mostrarMenuConfiguracion;
-    botonVolver.classList.add('back-button');
-
-    configContainer.appendChild(guardarConfigBoton);
-    configContainer.appendChild(botonVolver);
-    appContainer.appendChild(configContainer);
+    appContainer.appendChild(wrapper);
 }
 
 /**
@@ -3625,10 +3322,9 @@ function guardarConfiguracionTiempos() {
     tiemposSeleccionadosUsuario = [...nuevaSeleccion];
     
     if (typeof guardarProgreso === 'function') {
-        guardarProgreso();
+        guardarProgreso(false);
     }
 
-    mostrarMensaje("Configuración", "Tiempos verbales guardados correctamente.");
     mostrarMenuConfiguracion();
 }
 
@@ -3645,10 +3341,9 @@ function guardarConfiguracionVerbos() {
     verbosSeleccionadosUsuario = [...nuevaSeleccion];
     
     if (typeof guardarProgreso === 'function') {
-        guardarProgreso();
+        guardarProgreso(false);
     }
 
-    mostrarMensaje("Configuración", "Verbos seleccionados guardados correctamente.");
     mostrarMenuConfiguracion();
 }
 
@@ -3660,326 +3355,173 @@ function guardarConfiguracionVerbos() {
  */
 function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales) {
     limpiarContenedor();
-    setGameBackground(true);
-    // respuestasInputs se asume que es una variable global o definida en un scope superior
-    // si no, asegúrate de que esté correctamente declarada: let respuestasInputs = {};
-    respuestasInputs = {}; // Reinicializar para cada nueva actividad
+    respuestasInputs = {};
 
-    // 1. Crear un contenedor para toda la sección de práctica y aplicarle los estilos base
+    // ── Contenedor principal ──────────────────────────────────
     const practiceContainer = document.createElement('div');
-    practiceContainer.style.backgroundColor = 'rgba(255,255,255,0.045)'; // Fondo blanco
-    practiceContainer.style.color = '#EDEDF5';
-    practiceContainer.style.padding = '20px';
-    practiceContainer.style.borderRadius = '10px';
-    practiceContainer.style.margin = '20px auto'; // Centrar y añadir margen superior/inferior
-    practiceContainer.style.maxWidth = '700px'; // Ajusta el ancho máximo según tu diseño
-    practiceContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; // Sombra suave
-    practiceContainer.style.textAlign = 'center'; // Centrar el contenido dentro de este contenedor
-    practiceContainer.style.position = 'relative'; // Necesario para posicionar el botón de ayuda
+    practiceContainer.className = 'game-screen';
 
+    // ── Header: verbo + pronombre ─────────────────────────────
+    const gameHeader = document.createElement('div');
+    gameHeader.className = 'game-screen__header';
 
-    const headerContainer = document.createElement('div');
-    headerContainer.style.display = 'flex';
-    headerContainer.style.justifyContent = 'space-between';
-    headerContainer.style.alignItems = 'flex-start';
-    headerContainer.style.marginBottom = '20px';
-    headerContainer.style.position = 'relative';
-    
-    // Contenedor para las instrucciones
-    const instructionsContainer = document.createElement('div');
-    instructionsContainer.style.flex = '1';
-    instructionsContainer.style.paddingRight = '50px'; // Espacio para el botón
-    
+    const labelVerbo = document.createElement('h2');
+    labelVerbo.id = 'label-verbo';
+    labelVerbo.className = 'game-verb';
+
+    const labelPronombre = document.createElement('p');
+    labelPronombre.id = 'label-pronombre';
+    labelPronombre.className = 'game-pronoun';
+
     // Instrucciones
-    const labelInstrucciones = document.createElement('p');
-    labelInstrucciones.textContent = "Escribe la conjugación del verbo en cada tiempo verbal.";
-    labelInstrucciones.style.color = '#EDEDF5';
-    labelInstrucciones.style.fontWeight = 'bold';
-    labelInstrucciones.style.margin = '0';
-    instructionsContainer.appendChild(labelInstrucciones);
-    
-    // Botón de ayuda (sin position absolute)
+    const instruccion = document.createElement('p');
+    instruccion.textContent = 'Escribe la conjugación del verbo en cada tiempo.';
+    instruccion.className = 'game-instruction';
+
+    // Botones de ayuda
+    const btnBar = document.createElement('div');
+    btnBar.className = 'game-btn-bar';
+
     const helpButton = document.createElement('button');
     helpButton.id = 'help-button';
     helpButton.innerHTML = '?';
-    helpButton.title = 'Mostrar irregularidades del verbo';
-    // El CSS del botón NO necesita position absolute con esta solución
-
-    // Código para el nuevo botón de explicación
-    // Crear el nuevo botón redondo para la explicación
-    const explanationButton = document.createElement('button');
-    explanationButton.id = 'explanation-button'; // Le asignamos un ID para estilado
-    explanationButton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><use href="#i-help"/></svg>'; explanationButton.classList.add('help-icon-btn');
-    explanationButton.title = 'Ver explicación del verbo'; // Un tooltip útil
-    explanationButton.style.position = 'absolute';
-    explanationButton.style.top = '20px';
-    explanationButton.style.right = '70px'; // Ajusta la posición para que no choque con el botón '?'
-    explanationButton.style.width = '40px'; // Ancho del botón
-    explanationButton.style.height = '40px'; // Altura del botón
-    explanationButton.style.borderRadius = '60%'; // ¡Esto lo hace redondo!
-    explanationButton.style.border = 'none';
-    explanationButton.style.backgroundColor = '#FACC15'; // Un color amarillo para el ícono
-    explanationButton.style.fontSize = '1.2em';
-    explanationButton.style.fontWeight = 'bold';
-    explanationButton.style.cursor = 'pointer';
-    explanationButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-    explanationButton.style.transition = 'transform 0.2s ease, background-color 0.2s ease';
-    explanationButton.onclick = function() {
-        mostrarModalVerbo('./Irregularidades.png');
-    };
-    explanationButton.addEventListener('mouseenter', () => {
-        explanationButton.style.transform = 'scale(1.1)';
-        explanationButton.style.backgroundColor = '#FACC15';
-    });
-    explanationButton.addEventListener('mouseleave', () => {
-        explanationButton.style.transform = 'scale(1)';
-        explanationButton.style.backgroundColor = '#FACC15';
-    });
-
-    
-    // Animación de pulso
-    setInterval(() => {
-        if (!helpButton.matches(':hover')) {
-            helpButton.style.animation = 'pulse 0.6s ease-in-out';
-            setTimeout(() => {
-                helpButton.style.animation = '';
-            }, 600);
-        }
-    }, 5000);
-    
+    helpButton.title = 'Irregularidades del verbo';
     helpButton.onclick = toggleAyudaIrregularidades;
-    
-    // Ensamblar estructura
-    headerContainer.appendChild(instructionsContainer);
-    headerContainer.appendChild(explanationButton); // Se añade el nuevo botón de ayuda-imagen
-    headerContainer.appendChild(helpButton);
-    practiceContainer.appendChild(headerContainer);
-    const labelVerbo = document.createElement('h3');
-    labelVerbo.id = 'label-verbo';
-    labelVerbo.style.color = '#00C8FF'; // Un color que destaque para el verbo
-    labelVerbo.style.fontSize = '1.8em'; // Tamaño de fuente más grande
-    labelVerbo.style.marginBottom = '15px';
-    practiceContainer.appendChild(labelVerbo); // Añadir al nuevo contenedor
 
-    const labelPronombre = document.createElement('h3');
-    labelPronombre.id = 'label-pronombre';
-    labelPronombre.style.color = '#00C8FF'; // Un color que destaque para el pronombre
-    labelPronombre.style.fontSize = '1.6em'; // Tamaño de fuente
-    labelPronombre.style.marginBottom = '25px';
-    practiceContainer.appendChild(labelPronombre); // Añadir al nuevo contenedor
+    const explanationButton = document.createElement('button');
+    explanationButton.id = 'explanation-button';
+    explanationButton.innerHTML = '💡';
+    explanationButton.title = 'Ver tipos de irregularidad';
+    explanationButton.className = 'btn-tip';
+    explanationButton.onclick = () => mostrarModalVerbo('./Irregularidades.png');
+
+    btnBar.appendChild(explanationButton);
+    btnBar.appendChild(helpButton);
+
+    gameHeader.appendChild(labelVerbo);
+    gameHeader.appendChild(labelPronombre);
+    gameHeader.appendChild(instruccion);
+    gameHeader.appendChild(btnBar);
+    practiceContainer.appendChild(gameHeader);
+
+    // ── Inputs de tiempos ─────────────────────────────────────
+    const inputsGrid = document.createElement('div');
+    inputsGrid.className = 'game-inputs-grid';
 
     const tiemposParaPracticar = tiemposAUsar;
-
-    const todosLosInputs = []; // Array para guardar todos los inputs en orden
+    const todosLosInputs = [];
 
     tiemposParaPracticar.forEach(tiempo => {
-        const divGroup = document.createElement('div');
-        divGroup.style.marginBottom = '10px';
-        divGroup.style.width = '100%';
-        divGroup.style.display = 'flex';
-        divGroup.style.justifyContent = 'center'; // Centra el label y el input
-        divGroup.style.alignItems = 'center';
+        const row = document.createElement('div');
+        row.className = 'game-input-row';
 
-        const labelTiempo = document.createElement('label');
-        labelTiempo.textContent = `${capitalizeFirstLetter(tiempo)}:`; // Usa la función capitalize
-        labelTiempo.style.marginRight = '10px';
-        labelTiempo.style.minWidth = '180px'; // Ancho mínimo ajustado para los labels
-        labelTiempo.style.textAlign = 'right';
-        labelTiempo.style.color = '#C4C4D6';
-        labelTiempo.style.fontWeight = 'bold';
+        const lbl = document.createElement('label');
+        lbl.textContent = capitalizeFirstLetter(tiempo) + ':';
+        lbl.className = 'game-input-label';
+        lbl.htmlFor = `input-${tiempo}`;
 
-        const entryTiempo = document.createElement('input');
-        entryTiempo.type = 'text';
-        entryTiempo.id = `input-${tiempo}`;
-        entryTiempo.style.flexGrow = '1'; // El input tomará el espacio restante
-        entryTiempo.style.maxWidth = '300px'; // Ancho máximo para el input
-        entryTiempo.style.padding = '10px';
-        entryTiempo.style.borderRadius = '8px';
-        entryTiempo.style.border = '1px solid rgba(255,255,255,0.18)';
-        entryTiempo.style.backgroundColor = 'rgba(255,255,255,0.07)';
-        entryTiempo.style.color = '#EDEDF5'; // Texto claro legible sobre fondo oscuro
-        entryTiempo.style.boxSizing = 'border-box'; // Incluye padding y border en el width/height
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.id = `input-${tiempo}`;
+        inp.className = 'game-input-field';
+        inp.autocomplete = 'off';
+        inp.autocorrect = 'off';
+        inp.spellcheck = false;
 
-        // Navegación con Enter
-        entryTiempo.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                const currentIndex = todosLosInputs.indexOf(this);
-                const nextIndex = currentIndex + 1;
-                
-                if (nextIndex < todosLosInputs.length) {
-                    todosLosInputs[nextIndex].focus();
-                }
+        inp.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const idx = todosLosInputs.indexOf(this);
+                if (idx + 1 < todosLosInputs.length) todosLosInputs[idx + 1].focus();
             }
         });
 
-        // Guardar input en el array
-        todosLosInputs.push(entryTiempo);
+        todosLosInputs.push(inp);
+        respuestasInputs[tiempo] = inp;
 
-        respuestasInputs[tiempo] = entryTiempo;
-
-        divGroup.appendChild(labelTiempo);
-        divGroup.appendChild(entryTiempo);
-        practiceContainer.appendChild(divGroup); // Añadir al nuevo contenedor
+        row.appendChild(lbl);
+        row.appendChild(inp);
+        inputsGrid.appendChild(row);
     });
 
-    // Contenedor para los botones para agruparlos y centrarlos
-    const buttonGroup = document.createElement('div');
-    buttonGroup.style.marginTop = '30px';
-    buttonGroup.style.display = 'flex';
-    buttonGroup.style.gap = '15px'; // Espacio entre botones
-    buttonGroup.style.justifyContent = 'center'; // Centrar los botones
+    practiceContainer.appendChild(inputsGrid);
+
+    // ── Botones de acción ─────────────────────────────────────
+    const actionRow = document.createElement('div');
+    actionRow.className = 'game-action-row';
 
     const botonVerificar = document.createElement('button');
     botonVerificar.id = 'boton-verificar';
-    botonVerificar.textContent = 'Verificar Respuestas';
+    botonVerificar.textContent = 'Verificar';
+    botonVerificar.className = 'btn-verify';
     botonVerificar.onclick = () => verificarRespuestasTiemposVerbales(tiemposParaPracticar);
-    botonVerificar.classList.add('menu-button'); // Mantén tus clases CSS existentes para botones
-    buttonGroup.appendChild(botonVerificar);
 
     const botonNuevo = document.createElement('button');
-    botonNuevo.textContent = 'Nuevo Verbo';
+    botonNuevo.textContent = 'Nuevo verbo';
+    botonNuevo.className = 'btn-new';
     botonNuevo.onclick = () => nuevoVerboTiemposVerbales(tiemposParaPracticar);
-    botonNuevo.classList.add('menu-button'); // Mantén tus clases CSS existentes para botones
-    buttonGroup.appendChild(botonNuevo);
 
-    practiceContainer.appendChild(buttonGroup); // Añadir el grupo de botones al contenedor de práctica
+    actionRow.appendChild(botonVerificar);
+    actionRow.appendChild(botonNuevo);
+    practiceContainer.appendChild(actionRow);
 
     const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al submenú';
+    botonVolver.textContent = '← Volver';
+    botonVolver.className = 'btn-back';
     botonVolver.onclick = mostrarSubMenuTiemposVerbales;
-    botonVolver.classList.add('back-button'); // Mantén tus clases CSS existentes para botones
-    botonVolver.style.marginTop = '20px'; // Añade margen superior al botón de volver
     practiceContainer.appendChild(botonVolver);
 
-// --- Modal de Ayuda Mejorado ---
-const ayudaModal = document.createElement('div');
-ayudaModal.id = 'ayuda-irregularidades-modal';
-ayudaModal.style.display = 'none';
-ayudaModal.style.position = 'fixed';
-ayudaModal.style.zIndex = '1000';
-ayudaModal.style.left = '0';
-ayudaModal.style.top = '0';
-ayudaModal.style.width = '100%';
-ayudaModal.style.height = '100%';
-ayudaModal.style.overflow = 'auto';
-ayudaModal.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'; // Fondo más oscuro
-ayudaModal.style.backdropFilter = 'blur(3px)'; // Efecto de desenfoque moderno
-ayudaModal.style.animation = 'fadeIn 0.3s ease-out'; // Animación de entrada
+    // ── Modal de ayuda de irregularidades ─────────────────────
+    const ayudaModal = document.createElement('div');
+    ayudaModal.id = 'ayuda-irregularidades-modal';
+    ayudaModal.className = 'ayuda-modal';
+    ayudaModal.style.display = 'none';
 
-// Contenido del modal
-const modalContent = document.createElement('div');
-modalContent.style.backgroundColor = '#12121E';
-modalContent.style.margin = '5% auto';
-modalContent.style.padding = '0'; // Sin padding para mejor control
-modalContent.style.border = '1px solid #A855F7';
-modalContent.style.width = '90%';
-modalContent.style.maxWidth = '600px';
-modalContent.style.borderRadius = '15px';
-modalContent.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.3), 0 8px 30px rgba(0, 0, 0, 0.15)';
-modalContent.style.position = 'relative';
-modalContent.style.overflow = 'hidden'; // Para bordes redondeados perfectos
-modalContent.style.fontFamily = "'DM Sans','Inter',sans-serif";
+    const modalContent = document.createElement('div');
+    modalContent.className = 'ayuda-modal__content';
 
-// Header del modal
-const modalHeader = document.createElement('div');
-modalHeader.style.background = 'linear-gradient(135deg, #A855F7 0%, #FF2DA6 100%)';
-modalHeader.style.color = '#EDEDF5';
-modalHeader.style.padding = '20px 25px';
-modalHeader.style.display = 'flex';
-modalHeader.style.justifyContent = 'space-between';
-modalHeader.style.alignItems = 'center';
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'ayuda-modal__header';
 
-const modalTitle = document.createElement('h2');
-modalTitle.textContent = '📚 Irregularidades del Verbo';
-modalTitle.style.margin = '0';
-modalTitle.style.fontSize = '1.5em';
-modalTitle.style.fontWeight = '600';
+    const modalTitle = document.createElement('h3');
+    modalTitle.textContent = 'Irregularidades del verbo';
 
-const closeButton = document.createElement('button');
-closeButton.innerHTML = '✕';
-closeButton.style.background = 'rgba(255, 255, 255, 0.2)';
-closeButton.style.border = 'none';
-closeButton.style.color = '#EDEDF5';
-closeButton.style.fontSize = '20px';
-closeButton.style.fontWeight = 'bold';
-closeButton.style.cursor = 'pointer';
-closeButton.style.borderRadius = '50%';
-closeButton.style.width = '35px';
-closeButton.style.height = '35px';
-closeButton.style.display = 'flex';
-closeButton.style.justifyContent = 'center';
-closeButton.style.alignItems = 'center';
-closeButton.style.transition = 'all 0.2s ease';
-closeButton.onclick = toggleAyudaIrregularidades;
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '✕';
+    closeButton.className = 'ayuda-modal__close';
+    closeButton.onclick = toggleAyudaIrregularidades;
 
-// Efectos hover para el botón cerrar
-closeButton.addEventListener('mouseenter', () => {
-    closeButton.style.background = 'rgba(255, 255, 255, 0.3)';
-    closeButton.style.transform = 'scale(1.1)';
-});
+    modalHeader.appendChild(modalTitle);
+    modalHeader.appendChild(closeButton);
 
-closeButton.addEventListener('mouseleave', () => {
-    closeButton.style.background = 'rgba(255, 255, 255, 0.2)';
-    closeButton.style.transform = 'scale(1)';
-});
+    const modalBody = document.createElement('div');
+    modalBody.id = 'ayuda-irregularidades-content';
+    modalBody.className = 'ayuda-modal__body';
 
-modalHeader.appendChild(modalTitle);
-modalHeader.appendChild(closeButton);
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    ayudaModal.appendChild(modalContent);
 
-// Cuerpo del modal
-const modalBody = document.createElement('div');
-modalBody.id = 'ayuda-irregularidades-content';
-modalBody.style.padding = '25px';
-modalBody.style.maxHeight = '60vh';
-modalBody.style.overflowY = 'auto';
-modalBody.style.fontSize = '1em';
-modalBody.style.lineHeight = '1.6';
-modalBody.style.color = '#EDEDF5';
-modalBody.style.whiteSpace = 'pre-wrap';
+    ayudaModal.addEventListener('click', (e) => {
+        if (e.target === ayudaModal) toggleAyudaIrregularidades();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ayudaModal.style.display === 'block') toggleAyudaIrregularidades();
+    });
 
-// Scrollbar personalizada para el contenido
-modalBody.style.scrollbarWidth = 'thin';
-modalBody.style.scrollbarColor = '#A855F7 rgba(255,255,255,0.06)';
-
-// Footer opcional (puedes quitarlo si no lo necesitas)
-const modalFooter = document.createElement('div');
-modalFooter.style.padding = '15px 25px';
-modalFooter.style.backgroundColor = 'rgba(255,255,255,0.045)';
-modalFooter.style.borderTop = '1px solid rgba(255,255,255,0.12)';
-modalFooter.style.textAlign = 'center';
-modalFooter.style.fontSize = '0.9em';
-modalFooter.style.color = '#9A9AB0';
-modalFooter.innerHTML = '<em>💡 Tip: Usa estas formas como referencia para conjugar correctamente</em>';
-
-// Ensamblar el modal
-modalContent.appendChild(modalHeader);
-modalContent.appendChild(modalBody);
-modalContent.appendChild(modalFooter); // Comenta esta línea si no quieres el footer
-ayudaModal.appendChild(modalContent);
-
-// Cerrar modal al hacer clic fuera del contenido
-ayudaModal.addEventListener('click', (e) => {
-    if (e.target === ayudaModal) {
-        toggleAyudaIrregularidades();
-    }
-});
-
-// Cerrar con tecla Escape
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && ayudaModal.style.display === 'block') {
-        toggleAyudaIrregularidades();
-    }
-});
-
-appContainer.appendChild(ayudaModal);
-    // Finalmente, añade el contenedor de práctica al contenedor principal de la aplicación
+    appContainer.appendChild(ayudaModal);
     appContainer.appendChild(practiceContainer);
 
-    // Asegúrate de que currentVerbo y currentPronombre se establezcan aquí o en nuevoVerboTiemposVerbales
+    // Animación de pulso en help button
+    setInterval(() => {
+        if (helpButton && !helpButton.matches(':hover')) {
+            helpButton.style.animation = 'pulse 0.6s ease-in-out';
+            setTimeout(() => { if(helpButton) helpButton.style.animation = ''; }, 600);
+        }
+    }, 5000);
+
     nuevoVerboTiemposVerbales(tiemposParaPracticar);
 }
-
 
 
 /**
@@ -4011,8 +3553,8 @@ function nuevoVerboTiemposVerbales(tiemposParaLimpiar) {
     tiemposParaLimpiar.forEach(tiempo => {
         if (respuestasInputs[tiempo]) {
             respuestasInputs[tiempo].value = '';
-            respuestasInputs[tiempo].style.backgroundColor = 'rgba(255,255,255,0.10)';
-            respuestasInputs[tiempo].style.color = '#EDEDF5';
+            respuestasInputs[tiempo].style.backgroundColor = '#444';
+            respuestasInputs[tiempo].style.color = '#f0f0f0';
         }
     });
 }
@@ -4107,16 +3649,16 @@ function verificarRespuestasTiemposVerbales(tiemposAUsar) {
 
         if (esCorrecta) {
             correctas += 1;
-            respuestasInputs[tiempoDelFormulario].style.backgroundColor = 'rgba(57,255,20,.85)';
-            respuestasInputs[tiempoDelFormulario].style.color = '#0E0E1A';
+            respuestasInputs[tiempoDelFormulario].style.backgroundColor = 'rgba(60, 179, 113, 1)'; // Verde
+            respuestasInputs[tiempoDelFormulario].style.color = '#222222';
         } else {
             errores.push({
                 tiempo: tiempoDelFormulario,
                 usuario: respuestaUsuario,
                 correcto: respuestasCorrectas[claveParaDiccionario]
             });
-            respuestasInputs[tiempoDelFormulario].style.backgroundColor = 'rgba(255,77,109,.9)';
-            respuestasInputs[tiempoDelFormulario].style.color = '#0E0E1A';
+            respuestasInputs[tiempoDelFormulario].style.backgroundColor = 'rgba(178, 34, 34, 0.9)'; // Rojo
+            respuestasInputs[tiempoDelFormulario].style.color = '#222222';
         }
     });
 
@@ -4137,19 +3679,19 @@ function verificarRespuestasTiemposVerbales(tiemposAUsar) {
 
             tablaRowsHtml += `
                 <tr>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.12); color: var(--fuxia); font-weight: bold;">${tiempoCapitalizado}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.12); color: #FF6B81; font-weight: normal;">${respuestaUsuarioDisplay}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.12); color: #39FF14; font-weight: bold;">"${respuestaCorrectaDisplay}"</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; color: #ff66c4; font-weight: bold;">${tiempoCapitalizado}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; color: #FF4135; font-weight: normal;">${respuestaUsuarioDisplay}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; color: #2CD81D; font-weight: bold;">"${respuestaCorrectaDisplay}"</td>
                 </tr>
             `;
         });
         let tablaErroresHtml = `
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9em; text-align: center;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; text-align: center;">
                 <thead>
-                    <tr style="background-color: rgba(255,255,255,0.06);">
-                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.12); color: var(--amarillo);">Tiempo Verbal</th>
-                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.12); color: var(--amarillo);">Tu respuesta</th>
-                        <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.12); color: var(--amarillo);">Respuesta correcta</th>
+                    <tr style="background-color: #222222;">
+                        <th style="padding: 8px; border: 1px solid #white;">Tiempo Verbal</th>
+                        <th style="padding: 8px; border: 1px solid #white;">Tu respuesta</th>
+                        <th style="padding: 8px; border: 1px solid #white;">Respuesta correcta</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -4161,9 +3703,9 @@ function verificarRespuestasTiemposVerbales(tiemposAUsar) {
         puntuacion += correctas;
         mostrarMensaje(
             "Resultado",
-            `<div style="text-align: center;"><span style="color: var(--cian); font-weight: bold;">${correctas} respuestas correctas, ${incorrectas} incorrectas:</span></div>` +
+            `<div style="text-align: center;"><span style="color: #91B8FF; font-weight: bold;">${correctas} respuestas correctas, ${incorrectas} incorrectas:</span></div>` +
             `<div style="max-height: 180px; overflow-y: auto; margin-top: 15px;">${tablaErroresHtml}</div>` +
-            `<div style="margin-top: 15px; text-align: center;"><span style="color: var(--cian); font-weight: bold;">Puntuación actual: ${puntuacion}</span></div>`
+            `<div style="margin-top: 15px; text-align: center;"><span style="color: #91B8FF; font-weight: bold;">Puntuación actual: ${puntuacion}</span></div>`
         );
     }
 
@@ -4208,47 +3750,37 @@ function mostrarNivel() {
 // función para Aprender > Tiempos verbales: uso y forma. 
 function mostrarExplicacionesTiemposVerbales() {
     limpiarContenedor();
-    setGameBackground(false);
 
-    const tituloPagina = document.createElement('h2');
-    tituloPagina.textContent = 'Uso y Forma de los tiempos';
-    appContainer.appendChild(tituloPagina);
+    const titulo = document.createElement('h2');
+    titulo.className = 'section-title';
+    titulo.textContent = 'Tiempos Verbales';
+    appContainer.appendChild(titulo);
 
     const instruccion = document.createElement('p');
-    instruccion.className = 'section-sub';
-    instruccion.textContent = 'Selecciona un tiempo para ver su uso y forma';
+    instruccion.textContent = 'Selecciona un tiempo para ver su uso y forma:';
+    instruccion.style.color = 'var(--text-mid)';
+    instruccion.style.marginBottom = '16px';
+    instruccion.style.fontSize = '0.9em';
     appContainer.appendChild(instruccion);
 
-    // Agrupados por modo (Indicativo / Subjuntivo), como en la v5
-    const indicativo = ["presente", "pretérito perfecto", "pretérito indefinido", "pretérito imperfecto", "pluscuamperfecto", "futuro", "condicional"];
-    const subjuntivo = ["presente de subjuntivo", "imperfecto de subjuntivo", "pluscuamperfecto de subjuntivo"];
-    const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    const tiemposContainer = document.createElement('div');
+    tiemposContainer.className = 'tiempos-grid';
 
-    const construirGrupo = (tituloModo, claseModo, tiempos, accent) => {
-        // Solo mostramos los tiempos que realmente existen en los datos
-        const disponibles = tiempos.filter(t => todosLosTiemposVerbales.includes(t));
-        if (disponibles.length === 0) return;
+    todosLosTiemposVerbales.forEach(tiempo => {
+        if (typeof tiempo !== 'string' || !tiempo) return;
+        const botonTiempo = document.createElement('button');
+        botonTiempo.className = 'btn-tiempo';
+        botonTiempo.textContent = tiempo.charAt(0).toUpperCase() + tiempo.slice(1);
+        botonTiempo.onclick = () => mostrarExplicacionDetalladaTiempoVerbal(tiempo);
+        tiemposContainer.appendChild(botonTiempo);
+    });
 
-        const label = document.createElement('div');
-        label.className = 'group-label ' + claseModo;
-        label.textContent = tituloModo;
-        appContainer.appendChild(label);
-
-        const lista = document.createElement('div');
-        lista.className = 'row-list row-list--compact';
-        disponibles.forEach(tiempo => {
-            lista.appendChild(crearRowTiempo(tiempo, accent, () => mostrarExplicacionDetalladaTiempoVerbal(tiempo)));
-        });
-        appContainer.appendChild(lista);
-    };
-
-    construirGrupo('Modo Indicativo', 'ind', indicativo, 'var(--cian)');
-    construirGrupo('Modo Subjuntivo', 'sub', subjuntivo, 'var(--amarillo)');
+    appContainer.appendChild(tiemposContainer);
 
     const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al menú de Aprender';
+    botonVolver.textContent = '← Aprender';
+    botonVolver.className = 'btn-back';
     botonVolver.onclick = mostrarSubMenuAprender;
-    botonVolver.classList.add('back-button');
     appContainer.appendChild(botonVolver);
 }
 
@@ -4266,8 +3798,7 @@ function mostrarExplicacionDetalladaTiempoVerbal(tiempoKey) {
     }
     // --- FIN VERIFICACIÓN ---
 
-    limpiarContenedor();
-    setGameBackground(false); 
+    limpiarContenedor(); 
 
     // --- USAR el tiempoKeyMap GLOBAL para normalizar tiempoKey ---
     // Si la clave no está en el mapa, se usa tal cual.
@@ -4310,8 +3841,8 @@ function mostrarExplicacionDetalladaTiempoVerbal(tiempoKey) {
     usoColumn.style.flex = '1';
     usoColumn.style.minWidth = '300px'; 
     usoColumn.innerHTML = `
-        <div class="info-box">
-            <h3>¿Cuándo se usa?</h3>
+        <div style="background-color: #D4EEFF; padding: 20px; border-radius: 15px; color: #333; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+            <h3 style="color: #4CAF50;">¿Cuándo se usa?</h3>
             ${info.contentHtml || ''}
         </div>
     `;
@@ -4323,8 +3854,8 @@ function mostrarExplicacionDetalladaTiempoVerbal(tiempoKey) {
         formaColumn.style.flex = '1';
         formaColumn.style.minWidth = '300px'; 
         formaColumn.innerHTML = `
-            <div class="info-box">
-                <h3>Forma</h3>
+            <div style="background-color: #D4EEFF; padding: 20px; border-radius: 15px; color: #333; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                <h3 style="color: #4CAF50;">Forma</h3>
                 ${info.forma}
             </div>
         `;
@@ -4363,31 +3894,31 @@ function mostrarExplicacionDetalladaTiempoVerbal(tiempoKey) {
  */
 function mostrarSignificadoVerbos() {
     limpiarContenedor();
-    setGameBackground(false);
     appContainer.style.textAlign = 'left';
+
     const titulo = document.createElement('h2');
+    titulo.className = 'section-title';
     titulo.textContent = 'Significado de los Verbos';
     appContainer.appendChild(titulo);
 
     const instruccion = document.createElement('p');
-    instruccion.textContent = 'Haz clic en un verbo para ver su significado:';
+    instruccion.textContent = 'Toca un verbo para ver su significado:';
+    instruccion.style.color = 'var(--text-mid)';
+    instruccion.style.fontSize = '0.9em';
+    instruccion.style.marginBottom = '12px';
     appContainer.appendChild(instruccion);
 
     const verbosContainer = document.createElement('div');
-    verbosContainer.className = 'verbos-list-container'; // Clase para estilos de la lista de verbos
+    verbosContainer.className = 'verbos-list-container';
     appContainer.appendChild(verbosContainer);
 
-    // Itera sobre los verbos capitalizados (ordenados alfabéticamente) para crear un botón para cada uno.
-    [...verbosCapitalizados].sort((a, b) => a.localeCompare(b, 'es')).forEach(verbo => {
+    verbosCapitalizados.forEach(verbo => {
         const botonVerbo = document.createElement('button');
         botonVerbo.textContent = verbo;
-        botonVerbo.className = 'boton-verbo-lista'; // Clase para estilizar estos botones
-        
-        // Obtener el tipo de irregularidad del verbo para asignar la clase de color
+        botonVerbo.className = 'boton-verbo-lista';
+
         const infoVerbo = explicacionesVerbos[verbo.toLowerCase()];
         if (infoVerbo && infoVerbo.presenteTipoIrregular) {
-            // Asegúrate de que el nombre de la clase CSS coincida con el valor en presenteTipoIrregular
-            // Por ejemplo, "Bota y Sombrero" se convierte en "verb-botasombrero"
             let irregularityClass = `verb-${infoVerbo.presenteTipoIrregular.toLowerCase().replace(/ /g, '')}`;
             botonVerbo.classList.add(irregularityClass);
         }
@@ -4396,31 +3927,11 @@ function mostrarSignificadoVerbos() {
         verbosContainer.appendChild(botonVerbo);
     });
 
-    // Añadir un espacio antes del botón "Volver"
-    const spacer = document.createElement('div');
-    spacer.style.marginTop = '20px';
-    appContainer.appendChild(spacer);
-
-    // NUEVO: Contenedor para el botón de Volver
-    const volverContainer = document.createElement('div');
-    volverContainer.style.marginTop = '20px'; // Espacio superior
-    volverContainer.style.display = 'flex';
-    volverContainer.style.justifyContent = 'center';
-
     const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al menú de Aprender';
+    botonVolver.textContent = '← Aprender';
+    botonVolver.className = 'btn-back';
     botonVolver.onclick = mostrarSubMenuAprender;
-    botonVolver.classList.add('back-button');
-
-    // Lo más importante: anular el ancho conflictivo
-    botonVolver.style.maxWidth = '100%';
-    botonVolver.style.minWidth = '250px';
-    botonVolver.style.width = 'auto';
-
-    // Añade el botón al nuevo contenedor
-    volverContainer.appendChild(botonVolver);
-    // Añade el contenedor al appContainer
-    appContainer.appendChild(volverContainer);
+    appContainer.appendChild(botonVolver);
 }
 
 /**
@@ -4457,7 +3968,7 @@ function mostrarDetalleVerbo(verbo) {
                     <ul class="example-list">
                         ${info.ejemplos.map(ej => {
                             // Cambia el color de la etiqueta <strong> a hotpink
-                            const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #00C8FF;">$1</strong>');
+                            const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #66ccff;">$1</strong>');
                             return `<li>${styledEj}</li>`;
                         }).join('')}
                     </ul>
@@ -4480,7 +3991,7 @@ function mostrarDetalleVerbo(verbo) {
                                 } else if (irr.tipo.includes('yo-go') || irr.tipo.includes('primera persona del presente') || irr.tipo.includes('ZC')) {
                                     icon = '🎩';
                                 } else {
-                                    icon = '⚙️';
+                                    icon = 'cfg';
                                 }
                                 const tipo = irr.tipo ? `<strong>Tipo:</strong> ${irr.tipo}<br>` : '';
                                 const tiempos = irr.tiempos && irr.tiempos.length > 0 ? `<strong>Tiempos afectados:</strong> ${irr.tiempos.join(', ')}<br>` : '';
@@ -4525,7 +4036,7 @@ function mostrarDetalleVerbo(verbo) {
                         <ul class="example-list">
                             ${info.ejemplosTraducidos.ingles.map(ej => {
                                 // Cambia el color de la etiqueta <strong> a hotpink
-                                const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #00C8FF;">$1</strong>');
+                                const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #66ccff;">$1</strong>');
                                 return `<li>${styledEj}</li>`;
                             }).join('')}
                         </ul>
@@ -4539,7 +4050,7 @@ function mostrarDetalleVerbo(verbo) {
                         <ul class="example-list">
                             ${info.ejemplosTraducidos.aleman.map(ej => {
                                 // Cambia el color de la etiqueta <strong> a hotpink
-                                const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #00C8FF;">$1</strong>');
+                                const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #66ccff;">$1</strong>');
                                 return `<li>${styledEj}</li>`;
                             }).join('')}
                         </ul>
@@ -4553,7 +4064,7 @@ function mostrarDetalleVerbo(verbo) {
                         <ul class="example-list">
                             ${info.ejemplosTraducidos.frances.map(ej => {
                                 // Cambia el color de la etiqueta <strong> a hotpink
-                                const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #00C8FF;">$1</strong>');
+                                const styledEj = ej.replace(/<strong>(.*?)<\/strong>/g, '<strong style="color: #66ccff;">$1</strong>');
                                 return `<li>${styledEj}</li>`;
                             }).join('')}
                         </ul>
@@ -4595,8 +4106,8 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
     // Contenedor principal del info-box para este verbo
     const detalleIrregularidadWrapper = document.createElement('div');
     // Aplicamos los estilos oscuros que quieres para el fondo principal
-    detalleIrregularidadWrapper.style.backgroundColor = 'rgba(255,255,255,0.045)'; // Fondo oscuro principal
-    detalleIrregularidadWrapper.style.color = '#EDEDF5'; // Color de texto claro principal
+    detalleIrregularidadWrapper.style.backgroundColor = '#2a2a2a'; // Fondo oscuro principal
+    detalleIrregularidadWrapper.style.color = '#D4EEFF'; // Color de texto claro principal
     detalleIrregularidadWrapper.style.padding = '25px';
     detalleIrregularidadWrapper.style.borderRadius = '12px';
     detalleIrregularidadWrapper.style.margin = '20px auto';
@@ -4607,7 +4118,7 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
 
     const tituloVerbo = document.createElement('h2');
     tituloVerbo.textContent = `Irregularidades de: ${verboKey.charAt(0).toUpperCase() + verboKey.slice(1)}`;
-    tituloVerbo.style.color = '#00C8FF'; // Azul vibrante para el título del verbo
+    tituloVerbo.style.color = '#66ccff'; // Azul vibrante para el título del verbo
     tituloVerbo.style.textAlign = 'center';
     tituloVerbo.style.marginBottom = '25px';
     detalleIrregularidadWrapper.appendChild(tituloVerbo);
@@ -4619,8 +4130,8 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
             dataVerbo.irregularidades.forEach(irregularidad => {
                 const irregularityInfoBox = document.createElement('div');
                 // Estilos para la caja de cada irregularidad (fondo ligeramente más claro que el principal)
-                irregularityInfoBox.style.backgroundColor = '#0E0E1A';
-                irregularityInfoBox.style.border = '1px solid rgba(255,255,255,0.12)'; // Borde un poco más oscuro
+                irregularityInfoBox.style.backgroundColor = '#3a3a3a';
+                irregularityInfoBox.style.border = '1px solid #555'; // Borde un poco más oscuro
                 irregularityInfoBox.style.marginBottom = '20px';
                 irregularityInfoBox.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
                 irregularityInfoBox.style.padding = '15px';
@@ -4636,12 +4147,12 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
 
                 const verbAndIrregularityTitle = document.createElement('h3');
                 verbAndIrregularityTitle.textContent = `${irregularidad.tipo}`;
-                verbAndIrregularityTitle.style.color = '#00C8FF'; // Color turquesa para el tipo de irregularidad
+                verbAndIrregularityTitle.style.color = '#00f0f0'; // Color turquesa para el tipo de irregularidad
                 contentDiv.appendChild(verbAndIrregularityTitle);
 
                 // Sección "Tiempos Afectados"
                 const tiemposSectionBox = document.createElement('div');
-                tiemposSectionBox.style.backgroundColor = 'rgba(255,255,255,0.07)'; // Fondo un poco más claro para esta subsección
+                tiemposSectionBox.style.backgroundColor = '#4a4a4a'; // Fondo un poco más claro para esta subsección
                 tiemposSectionBox.style.padding = '10px 15px';
                 tiemposSectionBox.style.borderRadius = '8px';
                 tiemposSectionBox.style.marginBottom = '10px';
@@ -4649,7 +4160,7 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
 
                 const tiemposH4 = document.createElement('h4');
                 tiemposH4.textContent = 'Tiempos Afectados:';
-                tiemposH4.style.color = '#EDEDF5';
+                tiemposH4.style.color = '#D4EEFF';
                 tiemposH4.style.marginTop = '0';
                 tiemposH4.style.marginBottom = '5px';
                 tiemposSectionBox.appendChild(tiemposH4);
@@ -4657,7 +4168,7 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
                 const tiemposContentP = document.createElement('p');
                 tiemposContentP.classList.add('description');
                 tiemposContentP.textContent = Array.isArray(irregularidad.tiempos) ? irregularidad.tiempos.join(', ') : irregularidad.tiempos;
-                tiemposContentP.style.color = '#EDEDF5';
+                tiemposContentP.style.color = '#D4EEFF';
                 tiemposContentP.style.marginTop = '0';
                 tiemposSectionBox.appendChild(tiemposContentP);
                 contentDiv.appendChild(tiemposSectionBox);
@@ -4665,14 +4176,14 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
                 // Sección "Notas"
                 if (irregularidad.notas) {
                     const notasSectionBox = document.createElement('div');
-                    notasSectionBox.style.backgroundColor = 'rgba(255,255,255,0.07)'; // Fondo un poco más claro para esta subsección
+                    notasSectionBox.style.backgroundColor = '#4a4a4a'; // Fondo un poco más claro para esta subsección
                     notasSectionBox.style.padding = '10px 15px';
                     notasSectionBox.style.borderRadius = '8px';
                     notasSectionBox.style.marginBottom = '10px';
 
                     const notasH4 = document.createElement('h4');
                     notasH4.textContent = 'Notas:';
-                    notasH4.style.color = '#EDEDF5';
+                    notasH4.style.color = '#D4EEFF';
                     notasH4.style.marginTop = '0';
                     notasH4.style.marginBottom = '5px';
                     notasSectionBox.appendChild(notasH4);
@@ -4681,7 +4192,7 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
                     notasContentP.classList.add('description');
                     // *** APLICAMOS styleNotesContent A LAS NOTAS AQUÍ ***
                     notasContentP.innerHTML = styleNotesContent(irregularidad.notas); // Usar innerHTML para interpretar los estilos
-                    notasContentP.style.color = '#EDEDF5'; // Este color será anulado por los estilos internos de styleNotesContent
+                    notasContentP.style.color = '#D4EEFF'; // Este color será anulado por los estilos internos de styleNotesContent
                     notasContentP.style.marginTop = '0';
                     notasSectionBox.appendChild(notasContentP);
                     contentDiv.appendChild(notasSectionBox);
@@ -4690,24 +4201,24 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
                 // --- Sección "Conjugaciones de Ejemplo" ---
                 if (Array.isArray(irregularidad.tiempos) && irregularidad.tiempos.length > 0) {
                     const conjugationsSectionBox = document.createElement('div');
-                    conjugationsSectionBox.style.backgroundColor = '#0E0E1A'; // Fondo oscuro para esta caja de conjugaciones
+                    conjugationsSectionBox.style.backgroundColor = '#3a3a3a'; // Fondo oscuro para esta caja de conjugaciones
                     conjugationsSectionBox.style.padding = '10px 15px';
                     conjugationsSectionBox.style.borderRadius = '8px';
                     conjugationsSectionBox.style.marginBottom = '10px';
 
                     const conjugationsH4 = document.createElement('h4');
                     conjugationsH4.textContent = 'Conjugaciones de Ejemplo:';
-                    conjugationsH4.style.color = '#EDEDF5';
+                    conjugationsH4.style.color = '#D4EEFF';
                     conjugationsH4.style.marginTop = '0';
                     conjugationsH4.style.marginBottom = '5px';
                     conjugationsSectionBox.appendChild(conjugationsH4);
 
                     const conjugationsList = document.createElement('ul');
-                    conjugationsList.style.color = '#EDEDF5';
+                    conjugationsList.style.color = '#D4EEFF';
                     conjugationsList.style.listStyleType = 'none';
                     conjugationsList.style.paddingLeft = '0';
                     conjugationsList.style.marginBottom = '10px';
-                    conjugationsList.style.borderBottom = '1px dashed rgba(255,255,255,0.12)';
+                    conjugationsList.style.borderBottom = '1px dashed #555';
                     conjugationsList.style.paddingBottom = '10px';
                     conjugationsList.style.marginRight = '10px';
                     conjugationsList.style.marginLeft = '10px';
@@ -4757,12 +4268,12 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
         } else {
             // Mensaje si es irregular pero no tiene detalles específicos
             const noDetailsInfoBox = document.createElement('div');
-            noDetailsInfoBox.style.backgroundColor = '#0E0E1A';
-            noDetailsInfoBox.style.border = '1px solid rgba(255,255,255,0.12)';
+            noDetailsInfoBox.style.backgroundColor = '#3a3a3a';
+            noDetailsInfoBox.style.border = '1px solid #555';
             noDetailsInfoBox.style.padding = '15px';
             noDetailsInfoBox.style.textAlign = 'center';
             noDetailsInfoBox.style.borderRadius = '8px';
-            noDetailsInfoBox.style.color = '#EDEDF5'; // Texto claro
+            noDetailsInfoBox.style.color = '#D4EEFF'; // Texto claro
             
             const iconSpan = document.createElement('span');
             iconSpan.textContent = '⚠️';
@@ -4777,12 +4288,12 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
     } else {
         // Mensaje si el verbo no es irregular o no se encuentra
         const noVerboFound = document.createElement('div');
-        noVerboFound.style.backgroundColor = '#0E0E1A';
-        noVerboFound.style.border = '1px solid rgba(255,255,255,0.12)';
+        noVerboFound.style.backgroundColor = '#3a3a3a';
+        noVerboFound.style.border = '1px solid #555';
         noVerboFound.style.padding = '15px';
         noVerboFound.style.textAlign = 'center';
         noVerboFound.style.borderRadius = '8px';
-        noVerboFound.style.color = '#EDEDF5'; // Texto claro
+        noVerboFound.style.color = '#D4EEFF'; // Texto claro
 
         const iconSpan = document.createElement('span');
         iconSpan.textContent = '❓';
@@ -4814,128 +4325,81 @@ function mostrarDetalleIrregularidadVerbo(verboKey) {
 function mostrarVerbosRegularesIrregulares() {
     console.log('mostrarVerbosRegularesIrregulares() llamada.');
     limpiarContenedor();
-    setGameBackground(false);
-    const titulo = document.createElement('h2');
-    titulo.textContent = 'Verbos Irregulares';
-    appContainer.appendChild(titulo);
-
-    const instruccion = document.createElement('p');
-    instruccion.textContent = 'Selecciona una opción para explorar las irregularidades:';
-    appContainer.appendChild(instruccion);
-
-    //Antiguo botón sustituido
-    //const explicacionesIrregularidadesBtn = document.createElement('button');
-    //explicacionesIrregularidadesBtn.textContent = 'Explicaciones de Irregularidades por Tiempo';
-    //explicacionesIrregularidadesBtn.classList.add('menu-button');
-    //explicacionesIrregularidadesBtn.onclick = mostrarSelectorTiempoIrregularidades; // <--- ¡AQUÍ ESTÁ EL CAMBIO!
-    //appContainer.appendChild(explicacionesIrregularidadesBtn);
-
-     // ¡NUEVO BOTÓN AQUÍ! PARA LAS IRREGULARIDADES POR TIEMPO
-     const botonIrregularidadesTiempo = document.createElement('button');
-     botonIrregularidadesTiempo.textContent = 'Irregularidades por Tiempo';
-     botonIrregularidadesTiempo.onclick = populateIrregularVerbsSection; // Llama a la función que creamos, llamada anterior **mostrarMenuIrregularidadesPorTiempo**
-     appContainer.appendChild(botonIrregularidadesTiempo);
-     // FIN DEL NUEVO BOTÓN
- 
-
-    //Nuevo botón  irregularidades por verbo
-    const irregularidadesPorVerboBtn = document.createElement('button');
-    irregularidadesPorVerboBtn.textContent = 'Irregularidades por Verbo';
-    irregularidadesPorVerboBtn.classList.add('menu-button');
-    irregularidadesPorVerboBtn.onclick = mostrarIrregularidadesPorVerbo; // Nueva función
-    appContainer.appendChild(irregularidadesPorVerboBtn);
-
-    // NUEVO: Contenedor para el botón de Volver
-    const volverContainer = document.createElement('div');
-    volverContainer.style.marginTop = '20px'; // Espacio superior
-    volverContainer.style.display = 'flex';
-    volverContainer.style.justifyContent = 'center';
-
-    const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver al menú de Aprender';
-    botonVolver.onclick = mostrarSubMenuAprender;
-    botonVolver.classList.add('back-button');
-
-    // Lo más importante: anular el ancho conflictivo
-    botonVolver.style.maxWidth = '100%';
-    botonVolver.style.minWidth = '250px';
-    botonVolver.style.width = 'auto';
-
-    // Añade el botón al nuevo contenedor
-    volverContainer.appendChild(botonVolver);
-    // Añade el contenedor al appContainer
-    appContainer.appendChild(volverContainer);
-    
+    appContainer.innerHTML = `
+        <div class="screen screen--submenu">
+            <div class="screen__header">
+                <button class="screen__back" id="vri-volver">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                </button>
+                <h1 class="screen__title">Irregulares</h1>
+            </div>
+            <div class="menu-rows">
+                <button class="menu-row" id="vri-tiempo">
+                    <span class="menu-row__num">01</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Por Tiempo Verbal</span>
+                        <span class="menu-row__sub">Explora las irregularidades de cada tiempo</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+                <button class="menu-row" id="vri-verbo">
+                    <span class="menu-row__num">02</span>
+                    <span class="menu-row__body">
+                        <span class="menu-row__title">Por Verbo</span>
+                        <span class="menu-row__sub">Consulta el detalle de cada verbo</span>
+                    </span>
+                    <svg class="menu-row__arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+                </button>
+            </div>
+        </div>
+    `;
+    document.getElementById('vri-tiempo').onclick = populateIrregularVerbsSection;
+    document.getElementById('vri-verbo').onclick  = mostrarIrregularidadesPorVerbo;
+    document.getElementById('vri-volver').onclick = mostrarSubMenuAprender;
 }
-//Nueva función para irregularidades por verbo
 
 function mostrarIrregularidadesPorVerbo() {
     console.log('mostrarIrregularidadesPorVerbo() llamada.');
     limpiarContenedor();
 
     const titulo = document.createElement('h2');
+    titulo.className = 'section-title';
     titulo.textContent = 'Irregularidades por Verbo';
     appContainer.appendChild(titulo);
 
     const instruccion = document.createElement('p');
-    instruccion.textContent = 'Haz clic en un verbo irregular para ver el detalle de sus irregularidades:';
+    instruccion.textContent = 'Toca un verbo irregular para ver el detalle de sus irregularidades:';
+    instruccion.style.color = 'var(--text-mid)';
+    instruccion.style.fontSize = '0.9em';
+    instruccion.style.marginBottom = '12px';
     appContainer.appendChild(instruccion);
 
     const verbosIrregularesContainer = document.createElement('div');
-    // Esta clase 'verbos-list-container' ya la usaste antes, podemos estilizarla en tu CSS
     verbosIrregularesContainer.className = 'verbos-list-container';
     appContainer.appendChild(verbosIrregularesContainer);
 
-    // Iterar sobre todos los verbos (ordenados alfabéticamente) y crear un botón solo para los irregulares
-    for (const verboKey of Object.keys(explicacionesVerbos).sort((a, b) => a.localeCompare(b, 'es'))) {
+    for (const verboKey in explicacionesVerbos) {
         const dataVerbo = explicacionesVerbos[verboKey.toLowerCase()];
-
-        // Solo crear botón si el verbo es irregular y tiene detalles de irregularidades
-        if (dataVerbo.esIrregular) { // Aquí mostramos todos los irregulares, incluso si no tienen detalle especificado
-                                      // La nueva función de detalle manejará el mensaje si no hay detalle
+        if (dataVerbo.esIrregular) {
             const botonVerbo = document.createElement('button');
             const verboCapitalizado = verboKey.charAt(0).toUpperCase() + verboKey.slice(1);
             botonVerbo.textContent = verboCapitalizado;
-            botonVerbo.className = 'boton-verbo-lista'; // Puedes usar la misma clase para los botones de lista
-
-            // Si quieres que el botón tenga el color de la irregularidad principal (e.g., Bota, Sombrero)
+            botonVerbo.className = 'boton-verbo-lista';
             if (dataVerbo.presenteTipoIrregular) {
-                let irregularityClass = `verb-${dataVerbo.presenteTipoIrregular.toLowerCase().replace(/ /g, '')}`;
-                botonVerbo.classList.add(irregularityClass);
+                botonVerbo.classList.add(`verb-${dataVerbo.presenteTipoIrregular.toLowerCase().replace(/ /g, '')}`);
             } else if (dataVerbo.indefinidoTipoIrregular && dataVerbo.indefinidoTipoIrregular.includes('J-Verbos')) {
-                botonVerbo.classList.add('verb-yogo'); // Asignar una clase para J-Verbos si no tienes una específica
+                botonVerbo.classList.add('verb-yogo');
             }
-
-
-            // Al hacer clic, llamamos a la nueva función que mostrará el detalle
-            // Pasar el 'verboKey' (en minúsculas) para buscar la información
             botonVerbo.onclick = () => mostrarDetalleIrregularidadVerbo(verboKey);
             verbosIrregularesContainer.appendChild(botonVerbo);
         }
     }
 
-    // Botón para volver al menú principal de Irregularidades (si existe, o al menú de Aprender)
-    // NUEVO: Contenedor para el botón de Volver
-    const volverContainer = document.createElement('div');
-    volverContainer.style.marginTop = '20px'; // Espacio superior
-    volverContainer.style.display = 'flex';
-    volverContainer.style.justifyContent = 'center';
-
     const botonVolver = document.createElement('button');
-    botonVolver.textContent = 'Volver a Irregularidades';
+    botonVolver.textContent = '← Irregularidades';
+    botonVolver.className = 'btn-back';
     botonVolver.onclick = mostrarVerbosRegularesIrregulares;
-    botonVolver.classList.add('back-button');
-
-    // Lo más importante: anular el ancho conflictivo
-    botonVolver.style.maxWidth = '100%';
-    botonVolver.style.minWidth = '250px';
-    botonVolver.style.width = 'auto';
-
-    // Añade el botón al nuevo contenedor
-    volverContainer.appendChild(botonVolver);
-    // Añade el contenedor al appContainer
-    appContainer.appendChild(volverContainer);
-    
+    appContainer.appendChild(botonVolver);
 }
 
 /**
@@ -4974,7 +4438,6 @@ function mostrarSelectorTiempoIrregularidades() {
 
 function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
     limpiarContenedor();
-    setGameBackground(false);
     const titulo = document.createElement('h2');
     titulo.textContent = `Irregularidades del ${tiempoKey.charAt(0).toUpperCase() + tiempoKey.slice(1)}`;
     appContainer.appendChild(titulo);
@@ -5014,8 +4477,8 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
 
         // --- CONTENEDOR PRINCIPAL PARA LA EXPLICACIÓN CON ESTILOS ---
         const explicacionWrapper = document.createElement('div');
-        explicacionWrapper.style.backgroundColor = '#EDEDF5';
-        explicacionWrapper.style.color = '#EDEDF5';
+        explicacionWrapper.style.backgroundColor = '#333';
+        explicacionWrapper.style.color = '#333';
         explicacionWrapper.style.padding = '25px';
         explicacionWrapper.style.borderRadius = '12px';
         explicacionWrapper.style.margin = '20px auto';
@@ -5029,7 +4492,7 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
         if (info.titulo) {
             const mainTitle = document.createElement('h3');
             mainTitle.textContent = info.titulo;
-            mainTitle.style.color = '#00C8FF';
+            mainTitle.style.color = '#0056b3';
             mainTitle.style.textAlign = 'center';
             explicacionWrapper.appendChild(mainTitle);
         }
@@ -5045,8 +4508,8 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
             info.tiposIrregularidad.forEach(tipoIrr => {
                 const tipoIrrBox = document.createElement('div');
                 tipoIrrBox.classList.add('info-box');
-                tipoIrrBox.style.backgroundColor = 'rgba(255,255,255,0.045)';
-                tipoIrrBox.style.border = '1px solid rgba(255,255,255,0.07)';
+                tipoIrrBox.style.backgroundColor = '#f8f8f8';
+                tipoIrrBox.style.border = '1px solid #eee';
                 tipoIrrBox.style.marginBottom = '20px';
                 tipoIrrBox.style.padding = '15px';
                 tipoIrrBox.style.borderRadius = '8px';
@@ -5062,7 +4525,7 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
 
                 const tipoIrrTitle = document.createElement('h4');
                 tipoIrrTitle.textContent = tipoIrr.nombre;
-                tipoIrrTitle.style.color = '#00C8FF';
+                tipoIrrTitle.style.color = '#007bff';
                 contentDiv.appendChild(tipoIrrTitle);
 
                 const tipoIrrDesc = document.createElement('p');
@@ -5074,14 +4537,14 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
                 // --- EJEMPLOS DE VERBOS CONJUGADOS (MODIFICACIÓN AQUÍ) ---
                 if (tipoIrr.verbosEjemplo && tipoIrr.verbosEjemplo.length > 0) {
                     const ejemplosContainer = document.createElement('div');
-                    ejemplosContainer.style.backgroundColor = '#0E0E1A';
+                    ejemplosContainer.style.backgroundColor = '#3a3a3a';
                     ejemplosContainer.style.padding = '15px';
                     ejemplosContainer.style.borderRadius = '8px';
                     ejemplosContainer.style.marginTop = '15px';
 
                     const ejemplosTitle = document.createElement('h5');
                     ejemplosTitle.textContent = 'Ejemplos de Conjugación:';
-                    ejemplosTitle.style.color = '#EDEDF5';
+                    ejemplosTitle.style.color = '#D4EEFF';
                     ejemplosTitle.style.marginTop = '0';
                     ejemplosTitle.style.marginBottom = '10px';
                     ejemplosContainer.appendChild(ejemplosTitle);
@@ -5092,11 +4555,11 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
                         ulEjemplos.style.listStyleType = 'none';
                         ulEjemplos.style.paddingLeft = '0';
                         ulEjemplos.style.marginBottom = '10px';
-                        ulEjemplos.style.borderBottom = '1px dashed rgba(255,255,255,0.12)';
+                        ulEjemplos.style.borderBottom = '1px dashed #555';
                         ulEjemplos.style.paddingBottom = '10px';
                         ulEjemplos.style.marginRight = '10px';
                         ulEjemplos.style.marginLeft = '10px';
-                        ulEjemplos.style.color = '#EDEDF5';
+                        ulEjemplos.style.color = '#D4EEFF';
 
                         const liInfinitivo = document.createElement('li');
                         liInfinitivo.innerHTML = `<strong>${ejemploVerbo.verbo.charAt(0).toUpperCase() + ejemploVerbo.verbo.slice(1)}</strong> (infinitivo)`;
@@ -5131,7 +4594,7 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
                             } else {
                                 const pNoForm = document.createElement('p');
                                 pNoForm.textContent = `No se encontró el participio para '${ejemploVerbo.verbo}'.`;
-                                pNoForm.style.color = '#FACC15';
+                                pNoForm.style.color = '#FFA07A';
                                 ulEjemplos.appendChild(pNoForm);
                             }
                         } else if (tiempoKey === 'gerundio') {
@@ -5143,7 +4606,7 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
                             } else {
                                 const pNoForm = document.createElement('p');
                                 pNoForm.textContent = `No se encontró el gerundio para '${ejemploVerbo.verbo}'.`;
-                                pNoForm.style.color = '#FACC15';
+                                pNoForm.style.color = '#FFA07A';
                                 ulEjemplos.appendChild(pNoForm);
                             }
                         }
@@ -5166,7 +4629,7 @@ function mostrarExplicacionesIrregularidadesPorTiempo(tiempoKey) {
                             } else {
                                 const pNoConjugacion = document.createElement('p');
                                 pNoConjugacion.textContent = `No se encontró conjugación para '${ejemploVerbo.verbo}' en este tiempo.`;
-                                pNoConjugacion.style.color = '#FACC15';
+                                pNoConjugacion.style.color = '#FFA07A';
                                 ulEjemplos.appendChild(pNoConjugacion);
                             }
                         }
@@ -5301,8 +4764,8 @@ function mostrarDetalleDeIrregularidad(irregularidad, tiempoKey) {
 
     const detailContainer = document.createElement('div');
     detailContainer.classList.add('explanation-main-container');
-    detailContainer.style.backgroundColor = '#EDEDF5';
-    detailContainer.style.color = '#EDEDF5';
+    detailContainer.style.backgroundColor = 'white';
+    detailContainer.style.color = '#333';
     detailContainer.style.padding = '25px';
     detailContainer.style.borderRadius = '12px';
     detailContainer.style.margin = '20px auto';
@@ -5314,7 +4777,7 @@ function mostrarDetalleDeIrregularidad(irregularidad, tiempoKey) {
     const titleElement = document.createElement('h2');
     titleElement.classList.add('verb-title');
     titleElement.textContent = irregularidad.nombre;
-    titleElement.style.color = '#00C8FF';
+    titleElement.style.color = '#0056b3';
     titleElement.style.textAlign = 'center';
     titleElement.style.marginBottom = '25px';
     detailContainer.appendChild(titleElement);
@@ -5326,14 +4789,14 @@ function mostrarDetalleDeIrregularidad(irregularidad, tiempoKey) {
 
     if (irregularidad.verbosEjemplo && irregularidad.verbosEjemplo.length > 0) {
         const conjugationsSectionBox = document.createElement('div');
-        conjugationsSectionBox.style.backgroundColor = 'rgba(255,255,255,0.045)';
+        conjugationsSectionBox.style.backgroundColor = '#2a2a2a';
         conjugationsSectionBox.style.padding = '10px 15px';
         conjugationsSectionBox.style.borderRadius = '8px';
         conjugationsSectionBox.style.marginBottom = '10px';
 
         const conjugationsH4 = document.createElement('h4');
         conjugationsH4.textContent = `Ejemplo de conjugaciones en ${tiempoKey.charAt(0).toUpperCase() + tiempoKey.slice(1)}:`;
-        conjugationsH4.style.color = '#EDEDF5';
+        conjugationsH4.style.color = '#D4EEFF';
         conjugationsH4.style.marginTop = '0';
         conjugationsH4.style.marginBottom = '5px';
         conjugationsSectionBox.appendChild(conjugationsH4);
@@ -5341,7 +4804,7 @@ function mostrarDetalleDeIrregularidad(irregularidad, tiempoKey) {
         const ulElement = document.createElement('ul');
         ulElement.style.listStyleType = 'none';
         ulElement.style.paddingLeft = '0';
-        ulElement.style.color = '#FF2DA6';
+        ulElement.style.color = '#ff66c4';
 
         irregularidad.verbosEjemplo.forEach(example => {
             const listItem = document.createElement('li');
@@ -5355,7 +4818,7 @@ function mostrarDetalleDeIrregularidad(irregularidad, tiempoKey) {
             const processedConjugatedString = processConjugatedStringForDisplay(conjugatedString);
 
             if (processedConjugatedString.trim() !== '') {
-                listItem.innerHTML = `<strong style="color: #39FF14;">${capitalizeFirstLetter(standardizedTenseKey)}:</strong> ${processedConjugatedString}`;
+                listItem.innerHTML = `<strong style="color: #32CD32;">${capitalizeFirstLetter(standardizedTenseKey)}:</strong> ${processedConjugatedString}`;
                 ulElement.appendChild(listItem);
             }
         });
@@ -5394,7 +4857,7 @@ function displayIrregularityGroupsOrTypes(currentSelectedTheoryTime) {
         const title = document.createElement('h2');
         title.style.fontSize = '1.875rem';
         title.style.fontWeight = 'bold';
-        title.style.color = '#EDEDF5';
+        title.style.color = '#a7c4fa';
         title.style.marginBottom = '2rem';
         title.style.textAlign = 'center';
         title.textContent = `Categorías de Irregularidades del ${capitalizeFirstLetter(currentSelectedTheoryTime)}`;
@@ -5418,9 +4881,9 @@ function displayIrregularityGroupsOrTypes(currentSelectedTheoryTime) {
             const button = document.createElement('button');
             // uniformButtonStyles se asume que está definido globalmente
             Object.assign(button.style, window.uniformButtonStyles || {}); // Usar window.uniformButtonStyles para asegurar acceso
-            button.style.backgroundColor = '#39FF14'; // Color para botones de grupo
-            button.onmouseover = () => { button.style.backgroundColor = '#39FF14'; button.style.transform = 'scale(1.05)'; };
-            button.onmouseout = () => { button.style.backgroundColor = '#39FF14'; button.style.transform = 'scale(1)'; };
+            button.style.backgroundColor = '#4CAF50'; // Color para botones de grupo
+            button.onmouseover = () => { button.style.backgroundColor = '#66BB6A'; button.style.transform = 'scale(1.05)'; };
+            button.onmouseout = () => { button.style.backgroundColor = '#4CAF50'; button.style.transform = 'scale(1)'; };
 
             const iconDiv = document.createElement('div');
             iconDiv.textContent = group.icono || '';
@@ -5450,7 +4913,7 @@ function displayIrregularityGroupsOrTypes(currentSelectedTheoryTime) {
         const title = document.createElement('h2');
         title.style.fontSize = '1.875rem';
         title.style.fontWeight = 'bold';
-        title.style.color = '#EDEDF5';
+        title.style.color = '#a7c4fa';
         title.style.marginBottom = '2rem';
         title.style.textAlign = 'center';
         title.textContent = `Irregularidades del ${capitalizeFirstLetter(currentSelectedTheoryTime)}`;
@@ -5462,7 +4925,7 @@ function displayIrregularityGroupsOrTypes(currentSelectedTheoryTime) {
 
         if (irregularidadesDelTiempo.length === 0) {
             const noResults = document.createElement('p');
-            noResults.style.color = '#9A9AB0';
+            noResults.style.color = 'gray';
             noResults.style.textAlign = 'center';
             noResults.textContent = `No hay irregularidades específicas definidas para el ${capitalizeFirstLetter(currentSelectedTheoryTime)}.`;
             container.appendChild(noResults);
@@ -5498,9 +4961,9 @@ function displayIrregularityGroupsOrTypes(currentSelectedTheoryTime) {
                 button.style.flexDirection = 'column';
                 button.style.alignItems = 'center';
                 button.style.justifyContent = 'center';
-                button.style.backgroundColor = 'rgba(255,255,255,0.045)';
-                button.onmouseover = () => { button.style.backgroundColor = 'rgba(255,255,255,0.07)'; button.style.transform = 'scale(1.05)'; };
-                button.onmouseout = () => { button.style.backgroundColor = 'rgba(255,255,255,0.045)'; button.style.transform = 'scale(1)'; };
+                button.style.backgroundColor = '#a7c4fa';
+                button.onmouseover = () => { button.style.backgroundColor = '#8eb2f7'; button.style.transform = 'scale(1.05)'; };
+                button.onmouseout = () => { button.style.backgroundColor = '#a7c4fa'; button.style.transform = 'scale(1)'; };
 
                 button.addEventListener('click', () => {
                     displaySpecificIrregularityTypeDetail(tipoIrregularidad, currentSelectedTheoryTime);
@@ -5513,14 +4976,14 @@ function displayIrregularityGroupsOrTypes(currentSelectedTheoryTime) {
     // Botón para volver a la elección (REGULAR vs IRREGULAR), siempre visible
     const backBtn = document.createElement('button');
     Object.assign(backBtn.style, {
-        marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.10)', color: '#FFFFFF', fontWeight: 'bold',
+        marginTop: '2rem', backgroundColor: '#a6a6a6', color: '#FFFFFF', fontWeight: 'bold',
         padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
         marginLeft: 'auto', marginRight: 'auto', display: 'block'
     });
     backBtn.textContent = '↩️ Volver a Elección';
-    backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#9A9AB0'; backBtn.style.transform = 'scale(1.05)'; };
-    backBtn.onmouseout = () => { backBtn.style.backgroundColor = 'rgba(255,255,255,0.10)'; backBtn.style.transform = 'scale(1)'; };
+    backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#8c8c8c'; backBtn.style.transform = 'scale(1.05)'; };
+    backBtn.onmouseout = () => { backBtn.style.backgroundColor = '#a6a6a6'; backBtn.style.transform = 'scale(1)'; };
     backBtn.addEventListener('click', () => {
         displayRegularIrregularChoice(); // Asume que esta función existe
     });
@@ -5545,7 +5008,7 @@ function displayGroupedIrregularityTypes(groupName, currentSelectedTheoryTime) {
     const title = document.createElement('h2');
     title.style.fontSize = '1.875rem';
     title.fontWeight = 'bold';
-    title.style.color = '#EDEDF5';
+    title.style.color = '#a7c4fa';
     title.style.marginBottom = '2rem';
     title.style.textAlign = 'center';
     title.textContent = `${groupName} del ${capitalizeFirstLetter(currentSelectedTheoryTime)}`;
@@ -5571,7 +5034,7 @@ function displayGroupedIrregularityTypes(groupName, currentSelectedTheoryTime) {
 
     if (!selectedGroup || !selectedGroup.tipos || selectedGroup.tipos.length === 0) {
         const noResults = document.createElement('p');
-        noResults.style.color = '#9A9AB0';
+        noResults.style.color = 'gray';
         noResults.style.textAlign = 'center';
         noResults.textContent = `No hay tipos de irregularidad definidos para esta categoría: ${groupName}.`;
         buttonsContainer.appendChild(noResults);
@@ -5589,9 +5052,9 @@ function displayGroupedIrregularityTypes(groupName, currentSelectedTheoryTime) {
                 button.style.gap = '10px';
                 button.innerHTML = `${specificType.icono || ''} <span>${specificType.nombre}</span>`;
 
-                button.style.backgroundColor = 'rgba(255,255,255,0.045)';
-                button.onmouseover = () => { button.style.backgroundColor = 'rgba(255,255,255,0.07)'; button.style.transform = 'scale(1.05)'; };
-                button.onmouseout = () => { button.style.backgroundColor = 'rgba(255,255,255,0.045)'; button.style.transform = 'scale(1)'; };
+                button.style.backgroundColor = '#a7c4fa';
+                button.onmouseover = () => { button.style.backgroundColor = '#8eb2f7'; button.style.transform = 'scale(1.05)'; };
+                button.onmouseout = () => { button.style.backgroundColor = '#a7c4fa'; button.style.transform = 'scale(1)'; };
 
                 button.onclick = () => displaySpecificIrregularityTypeDetail(specificType, currentSelectedTheoryTime);
                 buttonsContainer.appendChild(button);
@@ -5604,14 +5067,14 @@ function displayGroupedIrregularityTypes(groupName, currentSelectedTheoryTime) {
     // Botón para volver a las categorías amplias
     const backBtn = document.createElement('button');
     Object.assign(backBtn.style, {
-        marginTop: '2rem', backgroundColor: 'rgba(255,255,255,0.10)', color: '#FFFFFF', fontWeight: 'bold',
+        marginTop: '2rem', backgroundColor: '#a6a6a6', color: '#FFFFFF', fontWeight: 'bold',
         padding: '0.75rem 1.5rem', borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         transition: 'all 0.3s ease-in-out', transform: 'scale(1)', width: '100%', maxWidth: '200px',
         marginLeft: 'auto', marginRight: 'auto', display: 'block'
     });
     backBtn.textContent = '↩️ Volver a Categorías';
-    backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#9A9AB0'; backBtn.style.transform = 'scale(1.05)'; };
-    backBtn.onmouseout = () => { backBtn.style.backgroundColor = 'rgba(255,255,255,0.10)'; backBtn.style.transform = 'scale(1)'; };
+    backBtn.onmouseover = () => { backBtn.style.backgroundColor = '#8c8c8c'; backBtn.style.transform = 'scale(1.05)'; };
+    backBtn.onmouseout = () => { backBtn.style.backgroundColor = '#a6a6a6'; backBtn.style.transform = 'scale(1)'; };
     backBtn.addEventListener('click', () => {
         currentSelectedBroadCategory = null;
         displayIrregularityGroupsOrTypes(currentSelectedTheoryTime); // Llama a la función para gestionar grupos o tipos directos
@@ -5633,11 +5096,11 @@ function displaySpecificIrregularityTypeDetail(tipoIrregularidadObject, tiempoKe
         maxWidth: '800px',
         margin: '20px auto',
         padding: '25px',
-        backgroundColor: 'var(--color-background-secondary, #0E0E1A)',
+        backgroundColor: 'var(--color-background-secondary, #333333)',
         borderRadius: '10px',
         boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
         textAlign: 'left',
-        color: 'var(--color-text-light, #EDEDF5)'
+        color: 'var(--color-text-light, #F5F5DC)'
     });
 
     if (!tipoIrregularidadObject) {
@@ -5651,7 +5114,7 @@ function displaySpecificIrregularityTypeDetail(tipoIrregularidadObject, tiempoKe
     const title = document.createElement('h2');
     title.textContent = tipoIrregularidadObject.nombre;
     Object.assign(title.style, {
-        color: 'var(--color-primary, #39FF14)',
+        color: 'var(--color-primary, #4CAF50)',
         marginBottom: '20px',
         textAlign: 'center'
     });
@@ -5670,7 +5133,7 @@ function displaySpecificIrregularityTypeDetail(tipoIrregularidadObject, tiempoKe
         const examplesTitle = document.createElement('h3');
         examplesTitle.textContent = "Ejemplos de conjugación:";
         Object.assign(examplesTitle.style, {
-            color: 'var(--color-primary, #39FF14)',
+            color: 'var(--color-primary, #4CAF50)',
             marginTop: '20px',
             marginBottom: '10px'
         });
@@ -5695,13 +5158,13 @@ function displaySpecificIrregularityTypeDetail(tipoIrregularidadObject, tiempoKe
 
             if (processedConjugatedString.trim() !== '') {
                 listItem.innerHTML = `
-                    <strong style="color: var(--color-primary, #39FF14);">${capitalizeFirstLetter(example.verbo)}:</strong>
-                    <span style="color: var(--color-text-light, #EDEDF5);">${processedConjugatedString}</span>
+                    <strong style="color: var(--color-primary, #4CAF50);">${capitalizeFirstLetter(example.verbo)}:</strong>
+                    <span style="color: var(--color-text-light, #F5F5DC);">${processedConjugatedString}</span>
                 `;
             } else {
                 listItem.innerHTML = `
-                    <strong style="color: var(--color-primary, #39FF14);">${capitalizeFirstLetter(example.verbo)}:</strong>
-                    <span style="color: var(--color-text-light, #EDEDF5);">[Conjugación no disponible para este verbo o tiempo]</span>
+                    <strong style="color: var(--color-primary, #4CAF50);">${capitalizeFirstLetter(example.verbo)}:</strong>
+                    <span style="color: var(--color-text-light, #F5F5DC);">[Conjugación no disponible para este verbo o tiempo]</span>
                 `;
                 console.warn(`No se pudo obtener la conjugación para el ejemplo de irregularidad: ${example.verbo} en ${tiempoKey} (${tipoIrregularidadObject.nombre})`);
             }
@@ -5776,4 +5239,8 @@ window.mostrarSubMenuIndefinidoImperfecto = mostrarSubMenuIndefinidoImperfecto;
 
 
 // Llama a la función inicial después de exponer todas las demás.
-window.onload = mostrarMenu;
+window.onload = function() {
+    mostrarMenu();
+    // El dock React se monta desde dock.jsx vía Babel una vez el DOM esté listo.
+    // No hace falta hacer nada aquí; dock.jsx lo gestiona por sí solo.
+};

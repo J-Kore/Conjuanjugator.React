@@ -1,102 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JJ Conjugator</title>
+    <title>ConJuanjugator · SILABOS</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iNDgiIGhlaWdodD0iNDgiPgogIDxkZWZzPgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJiZXRHIiBjeD0iNDAlIiBjeT0iMzUlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkYyREE2Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjQTg1NUY3Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzdDM0FFRCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0icmlnRyIgY3g9IjQwJSIgY3k9IjQwJSIgcj0iNjUlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI0ZGRkZGRiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQ1JSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMDk2QzgiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9InN0YXJHIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkZGRkZGIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjQTg1NUY3Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0E4NTVGNyIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJoYWxvQmV0IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkYyREE2IiBzdG9wLW9wYWNpdHk9IjAuNTUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI0NSUiIHN0b3AtY29sb3I9IiNGRjJEQTYiIHN0b3Atb3BhY2l0eT0iMC4xOCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNGRjJEQTYiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iaGFsb1JpZyIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIgc3RvcC1vcGFjaXR5PSIwLjUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI0NSUiIHN0b3AtY29sb3I9IiMwMEM4RkYiIHN0b3Atb3BhY2l0eT0iMC4xNiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMEM4RkYiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxmaWx0ZXIgaWQ9InNvZnQiIHg9Ii04MCUiIHk9Ii04MCUiIHdpZHRoPSIyNjAlIiBoZWlnaHQ9IjI2MCUiPgogICAgICA8ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxLjEiIHJlc3VsdD0iYiIvPgogICAgICA8ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CgogIDwhLS0gRm9uZG8gcmVkb25kbyBjYXNpIG5lZ3JvIChmYXZpY29uLWZyaWVuZGx5KSAtLT4KICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBBMEExMiIvPgogIDxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjU5IiBmaWxsPSJub25lIiBzdHJva2U9IiNBODU1RjciIHN0cm9rZS1vcGFjaXR5PSIwLjI1IiBzdHJva2Utd2lkdGg9IjEiLz4KCiAgPCEtLSBIYWxvcyBhbXBsaW9zLCBjb24gbWFyZ2VuIGRlIHNvYnJhIGRlbnRybyBkZWwgbGllbnpvIC0tPgogIDxjaXJjbGUgY3g9IjQyIiBjeT0iMzgiIHI9IjMwIiBmaWxsPSJ1cmwoI2hhbG9CZXQpIi8+CiAgPGNpcmNsZSBjeD0iODAiIGN5PSI4NCIgcj0iMzAiIGZpbGw9InVybCgjaGFsb1JpZykiLz4KCiAgPCEtLQogICAgQ29uc3RlbGFjacOzbiBkZSBPcmnDs24sIHJlY2VudHJhZGEgZW4gZWwgbGllbnpvIDEyMHgxMjAuCiAgICBDaW50dXJhIChsYXMgMyBtYXLDrWFzKSBlbiBkaWFnb25hbCBjZW50cmFsOyBCZXRlbGdldXNlIGFycmliYS1penEsIFJpZ2VsIGFiYWpvLWRlci4KICAgIENvb3JkZW5hZGFzIGNvbiBtYXJnZW4gbcOtbmltbyBkZSAxNnB4IGEgY2FkYSBib3JkZS4KICAtLT4KICA8ZyBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiPgogICAgPCEtLSBsw61uZWFzIG1vcmFkYXMgKGN1ZXJwbykgLS0+CiAgICA8ZyBzdHJva2U9IiNBODU1RjciIHN0cm9rZS13aWR0aD0iMS40IiBvcGFjaXR5PSIwLjg1Ij4KICAgICAgPGxpbmUgeDE9IjQyIiB5MT0iMzgiIHgyPSI3OCIgeTI9IjQ0Ii8+CiAgICAgIDxsaW5lIHgxPSI0MiIgeTE9IjM4IiB4Mj0iNTAiIHkyPSI2MiIvPgogICAgICA8bGluZSB4MT0iNzgiIHkxPSI0NCIgeDI9IjcyIiB5Mj0iNjIiLz4KICAgICAgPGxpbmUgeDE9IjUwIiB5MT0iNjIiIHgyPSIzOCIgeTI9IjkwIi8+CiAgICAgIDxsaW5lIHgxPSI3MiIgeTE9IjYyIiB4Mj0iODAiIHkyPSI4NCIvPgogICAgPC9nPgogICAgPCEtLSBjaW50dXLDs24gKGNpYW4sIG3DoXMgZ3J1ZXNvKSAtLT4KICAgIDxnIHN0cm9rZT0iIzAwQzhGRiIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjk1Ij4KICAgICAgPGxpbmUgeDE9IjUwIiB5MT0iNjIiIHgyPSI2MSIgeTI9IjYxIi8+CiAgICAgIDxsaW5lIHgxPSI2MSIgeTE9IjYxIiB4Mj0iNzIiIHkyPSI2MiIvPgogICAgPC9nPgogICAgPCEtLSBsw61uZWEgYmFzZSBwdW50ZWFkYSAoZXNwYWRhL2Jhc2UpIC0tPgogICAgPGxpbmUgeDE9IjM4IiB5MT0iOTAiIHgyPSI4MCIgeTI9Ijg0IiBzdHJva2U9IiMwMEM4RkYiIHN0cm9rZS13aWR0aD0iMC45IiBzdHJva2UtZGFzaGFycmF5PSIyLjUsNCIgb3BhY2l0eT0iMC43Ii8+CiAgPC9nPgoKICA8IS0tIEVzdHJlbGxhcyAtLT4KICA8IS0tIEJldGVsZ2V1c2UgKGZ1eGlhLCBob21icm8gc3VwLWl6cSkgLS0+CiAgPGNpcmNsZSBjeD0iNDIiIGN5PSIzOCIgcj0iNS4yIiBmaWxsPSJ1cmwoI2JldEcpIiBmaWx0ZXI9InVybCgjc29mdCkiLz4KICA8IS0tIEJlbGxhdHJpeCAoaG9tYnJvIHN1cC1kZXIpIC0tPgogIDxjaXJjbGUgY3g9Ijc4IiBjeT0iNDQiIHI9IjMuNCIgZmlsbD0iI0E4NTVGNyIgZmlsdGVyPSJ1cmwoI3NvZnQpIi8+CiAgPCEtLSBDaW50dXLDs246IDMgbWFyw61hcyAtLT4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjYyIiByPSIyLjgiIGZpbGw9IiMwMEM4RkYiIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgogIDxjaXJjbGUgY3g9IjYxIiBjeT0iNjEiIHI9IjMiICAgZmlsbD0iI0ZGRkZGRiIgZmlsdGVyPSJ1cmwoI3NvZnQpIi8+CiAgPGNpcmNsZSBjeD0iNzIiIGN5PSI2MiIgcj0iMi44IiBmaWxsPSIjMDBDOEZGIiBmaWx0ZXI9InVybCgjc29mdCkiLz4KICA8IS0tIFNhaXBoIChyb2RpbGxhIGl6cSkgLS0+CiAgPGNpcmNsZSBjeD0iMzgiIGN5PSI5MCIgcj0iMi42IiBmaWxsPSIjQTg1NUY3IiBmaWx0ZXI9InVybCgjc29mdCkiLz4KICA8IS0tIFJpZ2VsIChwaWUgZGVyLCBjaWFuIGJyaWxsYW50ZSkgLS0+CiAgPGNpcmNsZSBjeD0iODAiIGN5PSI4NCIgcj0iNC42IiBmaWxsPSJ1cmwoI3JpZ0cpIiBmaWx0ZXI9InVybCgjc29mdCkiLz4KCiAgPCEtLSBkZXN0ZWxsb3Mgc3V0aWxlcyBjZW50cmFkb3Mgc29icmUgZXN0cmVsbGFzIGdyYW5kZXMgLS0+CiAgPGNpcmNsZSBjeD0iNDIiIGN5PSIzOCIgcj0iOSIgZmlsbD0idXJsKCNzdGFyRykiIG9wYWNpdHk9IjAuNSIvPgogIDxjaXJjbGUgY3g9IjgwIiBjeT0iODQiIHI9IjgiIGZpbGw9InVybCgjc3RhckcpIiBvcGFjaXR5PSIwLjQ1Ii8+Cjwvc3ZnPgo=">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <!--
-        React 18 + Babel Standalone.
-        Cargamos React ANTES que los módulos para que window.React
-        esté disponible cuando dock.jsx se ejecute.
-    -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
-        height="0" width="0" style="display:none;visibility:hidden"></iframe>
-    </noscript>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
-    <!--
-        Contenedor principal de la app.
-        script3.js sigue pintando aquí todo el contenido dinámico,
-        exactamente igual que antes. No cambia nada de la lógica.
-    -->
-    <div id="app-container"></div>
+    <svg width="0" height="0" style="position:absolute"><defs>
+  <g id="i-book"><path d="M3 5c2-1 5-1 7 0 2-1 5-1 7 0v13c-2-1-5-1-7 0-2-1-5-1-7 0z"/><path d="M10 5v13"/></g>
+  <g id="i-pad"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="14" r="1.4"/><circle cx="15.5" cy="14" r="1.4"/><path d="M8 8h8"/></g>
+  <g id="i-warn"><path d="M12 3 22 20H2z"/><path d="M12 10v4"/><path d="M12 17h.01"/></g>
+  <g id="i-save"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><rect x="8" y="13" width="8" height="5"/></g>
+  <g id="i-load"><path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></g>
+  <g id="i-clock"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g>
+  <g id="i-target"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></g>
+  <g id="i-help"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7"/><path d="M12 17h.01"/></g>
+  <g id="i-back"><path d="M15 6l-6 6 6 6"/></g>
+    <!-- SOMBRERO: chistera + "yo" -->
+  
+  <!-- BOTA: silueta de bota -->
+  
+  <!-- BOTA CON SOMBRERO: bota + chistera encima -->
+  
+  <!-- RADICAL: símbolo raíz cuadrada -->
+<g id="cat-bota" fill="none"><path d="M 9.50 4.00 L 9.50 11.00 C 9.50 13.30 10.80 13.90 12.80 14.60 C 15.60 15.30 17.80 15.70 18.40 17.20 C 18.70 18.40 17.90 19.10 16.40 19.10 L 6.20 19.10 C 5.10 19.10 5.00 17.80 5.20 16.30 C 5.50 13.50 6.00 11.50 6.00 4.00 Z "/><path d="M5.5 16.9 L18.2 16.9"/></g>
+  <g id="cat-somb" fill="none"><path d="M 8.00 15.50 C 7.70 11.00 7.70 7.00 8.30 5.20 C 9.50 4.40 14.50 4.40 15.70 5.20 C 16.30 7.00 16.30 11.00 16.00 15.50"/><ellipse cx="12" cy="16.05" rx="9" ry="1.75"/><path d="M8 13 H16"/></g>
+  <g id="cat-bs" fill="none"><path d="M 9.50 8.20 L 9.50 11.00 C 9.50 13.30 10.80 13.90 12.80 14.60 C 15.60 15.30 17.80 15.70 18.40 17.20 C 18.70 18.40 17.90 19.10 16.40 19.10 L 6.20 19.10 C 5.10 19.10 5.00 17.80 5.20 16.30 C 5.50 13.50 6.00 11.50 6.00 8.20 Z "/><path d="M5.5 16.9 L18.2 16.9"/><path d="M 5.75 7.60 C 5.65 5.60 5.65 4.20 6.05 3.40 C 6.85 2.90 8.65 2.90 9.45 3.40 C 9.85 4.20 9.85 5.60 9.75 7.60"/><ellipse cx="7.75" cy="7.9" rx="3.7" ry="1.1"/></g>
+  <g id="cat-radical"><path d="M3 13l2.5 6L9 4h11"/><path d="M9 4l-1 3"/></g>
+  <g id="cat-check"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/></g>
+  <!-- COMPLETO IRREGULAR: alien -->
+  <g id="cat-alien"><path d="M12 3c4.2 0 7 3 7 7 0 4.5-4 9-7 9s-7-4.5-7-9c0-4 2.8-7 7-7z"/><path d="M8.5 11c.8 1.5 1.8 2.3 2.2 2.3" stroke-width="2"/><path d="M15.5 11c-.8 1.5-1.8 2.3-2.2 2.3" stroke-width="2"/></g>
+    <g id="i-gear"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></g>
+</defs></svg>
 
-    <!-- Modal de irregularidades — sin cambios -->
+    <div id="app-container">
+    </div>
+
     <div id="modal-verbo" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close-btn" onclick="cerrarModalVerbo()">&times;</span>
             <h3 class="modal-title">¿Qué es un verbo bota, sombrero o irregular radical?</h3>
-            <img id="imagen-explicativa" src="./Irregularidades.png"
-                 alt="Explicación de verbos bota, sombrero e irregulares">
+            <img id="imagen-explicativa" src="./Irregularidades.png" alt="Explicación de verbos bota, sombrero e irregulares">
         </div>
     </div>
 
-    <!--
-        Contenedor del dock React.
-        dock.jsx monta aquí su componente <Dock />.
-    -->
-    <div id="dock-root"></div>
+    <nav id="main-dock-menu" class="botnav">
+  <div class="inner">
+    <button class="home" onclick="mostrarMenu()" aria-label="Inicio"><img class="ins-dock" alt="" aria-hidden="true" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJldEciIGN4PSI0MCUiIGN5PSIzNSUiIHI9IjY1JSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRjJEQTYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI2MCUiIHN0b3AtY29sb3I9IiNBODU1RjciLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjN0MzQUVEIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJyaWdHIiBjeD0iNDAlIiBjeT0iNDAlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjRkZGRkZGIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNDUlIiBzdG9wLWNvbG9yPSIjMDBDOEZGIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwOTZDOCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0ic3RhckciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNBODU1RjciLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQTg1NUY3IiBzdG9wLW9wYWNpdHk9IjAiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImhhbG9CZXQiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRjJEQTYiIHN0b3Atb3BhY2l0eT0iMC41NSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQ1JSIgc3RvcC1jb2xvcj0iI0ZGMkRBNiIgc3RvcC1vcGFjaXR5PSIwLjE4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0ZGMkRBNiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJoYWxvUmlnIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1MCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDBDOEZGIiBzdG9wLW9wYWNpdHk9IjAuNSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQ1JSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIgc3RvcC1vcGFjaXR5PSIwLjE2Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAwQzhGRiIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0ic29mdCIgeD0iLTgwJSIgeT0iLTgwJSIgd2lkdGg9IjI2MCUiIGhlaWdodD0iMjYwJSI+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjEuMSIgcmVzdWx0PSJiIi8+CiAgICAgIDxmZU1lcmdlPjxmZU1lcmdlTm9kZSBpbj0iYiIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT4KICAgIDwvZmlsdGVyPgogIDwvZGVmcz4KCiAgPCEtLSBGb25kbyByZWRvbmRvIGNhc2kgbmVncm8gKGZhdmljb24tZnJpZW5kbHkpIC0tPgogIDxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjYwIiBmaWxsPSIjMEEwQTEyIi8+CiAgPGNpcmNsZSBjeD0iNjAiIGN5PSI2MCIgcj0iNTkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0E4NTVGNyIgc3Ryb2tlLW9wYWNpdHk9IjAuMjUiIHN0cm9rZS13aWR0aD0iMSIvPgoKICA8IS0tIEhhbG9zIGFtcGxpb3MsIGNvbiBtYXJnZW4gZGUgc29icmEgZGVudHJvIGRlbCBsaWVuem8gLS0+CiAgPGNpcmNsZSBjeD0iNDIiIGN5PSIzOCIgcj0iMzAiIGZpbGw9InVybCgjaGFsb0JldCkiLz4KICA8Y2lyY2xlIGN4PSI4MCIgY3k9Ijg0IiByPSIzMCIgZmlsbD0idXJsKCNoYWxvUmlnKSIvPgoKICA8IS0tCiAgICBDb25zdGVsYWNpw7NuIGRlIE9yacOzbiwgcmVjZW50cmFkYSBlbiBlbCBsaWVuem8gMTIweDEyMC4KICAgIENpbnR1cmEgKGxhcyAzIG1hcsOtYXMpIGVuIGRpYWdvbmFsIGNlbnRyYWw7IEJldGVsZ2V1c2UgYXJyaWJhLWl6cSwgUmlnZWwgYWJham8tZGVyLgogICAgQ29vcmRlbmFkYXMgY29uIG1hcmdlbiBtw61uaW1vIGRlIDE2cHggYSBjYWRhIGJvcmRlLgogIC0tPgogIDxnIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSI+CiAgICA8IS0tIGzDrW5lYXMgbW9yYWRhcyAoY3VlcnBvKSAtLT4KICAgIDxnIHN0cm9rZT0iI0E4NTVGNyIgc3Ryb2tlLXdpZHRoPSIxLjQiIG9wYWNpdHk9IjAuODUiPgogICAgICA8bGluZSB4MT0iNDIiIHkxPSIzOCIgeDI9Ijc4IiB5Mj0iNDQiLz4KICAgICAgPGxpbmUgeDE9IjQyIiB5MT0iMzgiIHgyPSI1MCIgeTI9IjYyIi8+CiAgICAgIDxsaW5lIHgxPSI3OCIgeTE9IjQ0IiB4Mj0iNzIiIHkyPSI2MiIvPgogICAgICA8bGluZSB4MT0iNTAiIHkxPSI2MiIgeDI9IjM4IiB5Mj0iOTAiLz4KICAgICAgPGxpbmUgeDE9IjcyIiB5MT0iNjIiIHgyPSI4MCIgeTI9Ijg0Ii8+CiAgICA8L2c+CiAgICA8IS0tIGNpbnR1csOzbiAoY2lhbiwgbcOhcyBncnVlc28pIC0tPgogICAgPGcgc3Ryb2tlPSIjMDBDOEZGIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuOTUiPgogICAgICA8bGluZSB4MT0iNTAiIHkxPSI2MiIgeDI9IjYxIiB5Mj0iNjEiLz4KICAgICAgPGxpbmUgeDE9IjYxIiB5MT0iNjEiIHgyPSI3MiIgeTI9IjYyIi8+CiAgICA8L2c+CiAgICA8IS0tIGzDrW5lYSBiYXNlIHB1bnRlYWRhIChlc3BhZGEvYmFzZSkgLS0+CiAgICA8bGluZSB4MT0iMzgiIHkxPSI5MCIgeDI9IjgwIiB5Mj0iODQiIHN0cm9rZT0iIzAwQzhGRiIgc3Ryb2tlLXdpZHRoPSIwLjkiIHN0cm9rZS1kYXNoYXJyYXk9IjIuNSw0IiBvcGFjaXR5PSIwLjciLz4KICA8L2c+CgogIDwhLS0gRXN0cmVsbGFzIC0tPgogIDwhLS0gQmV0ZWxnZXVzZSAoZnV4aWEsIGhvbWJybyBzdXAtaXpxKSAtLT4KICA8Y2lyY2xlIGN4PSI0MiIgY3k9IjM4IiByPSI1LjIiIGZpbGw9InVybCgjYmV0RykiIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgogIDwhLS0gQmVsbGF0cml4IChob21icm8gc3VwLWRlcikgLS0+CiAgPGNpcmNsZSBjeD0iNzgiIGN5PSI0NCIgcj0iMy40IiBmaWxsPSIjQTg1NUY3IiBmaWx0ZXI9InVybCgjc29mdCkiLz4KICA8IS0tIENpbnR1csOzbjogMyBtYXLDrWFzIC0tPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNjIiIHI9IjIuOCIgZmlsbD0iIzAwQzhGRiIgZmlsdGVyPSJ1cmwoI3NvZnQpIi8+CiAgPGNpcmNsZSBjeD0iNjEiIGN5PSI2MSIgcj0iMyIgICBmaWxsPSIjRkZGRkZGIiBmaWx0ZXI9InVybCgjc29mdCkiLz4KICA8Y2lyY2xlIGN4PSI3MiIgY3k9IjYyIiByPSIyLjgiIGZpbGw9IiMwMEM4RkYiIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgogIDwhLS0gU2FpcGggKHJvZGlsbGEgaXpxKSAtLT4KICA8Y2lyY2xlIGN4PSIzOCIgY3k9IjkwIiByPSIyLjYiIGZpbGw9IiNBODU1RjciIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgogIDwhLS0gUmlnZWwgKHBpZSBkZXIsIGNpYW4gYnJpbGxhbnRlKSAtLT4KICA8Y2lyY2xlIGN4PSI4MCIgY3k9Ijg0IiByPSI0LjYiIGZpbGw9InVybCgjcmlnRykiIGZpbHRlcj0idXJsKCNzb2Z0KSIvPgoKICA8IS0tIGRlc3RlbGxvcyBzdXRpbGVzIGNlbnRyYWRvcyBzb2JyZSBlc3RyZWxsYXMgZ3JhbmRlcyAtLT4KICA8Y2lyY2xlIGN4PSI0MiIgY3k9IjM4IiByPSI5IiBmaWxsPSJ1cmwoI3N0YXJHKSIgb3BhY2l0eT0iMC41Ii8+CiAgPGNpcmNsZSBjeD0iODAiIGN5PSI4NCIgcj0iOCIgZmlsbD0idXJsKCNzdGFyRykiIG9wYWNpdHk9IjAuNDUiLz4KPC9zdmc+Cg=="><span>Inicio</span></button>
+    <div class="sep"></div>
+    <div class="pri">
+      <button onclick="mostrarSubMenuAprender()"><svg class="ico" viewBox="0 0 24 24"><use href="#i-book"/></svg>Aprender</button>
+      <button class="play" onclick="mostrarSubMenuPracticar()"><svg class="ico" viewBox="0 0 24 24"><use href="#i-pad"/></svg>Jugar</button>
+      <button onclick="populateIrregularVerbsSection()"><svg class="ico" viewBox="0 0 24 24"><use href="#i-warn"/></svg>Irregulares</button>
+    </div>
+    <div class="sep"></div>
+    <div class="util">
+      <button title="Guardar" aria-label="Guardar" onclick="guardarProgreso()"><svg class="ico" viewBox="0 0 24 24"><use href="#i-save"/></svg></button>
+      <button title="Cargar" aria-label="Cargar" onclick="cargarProgreso()"><svg class="ico" viewBox="0 0 24 24"><use href="#i-load"/></svg></button>
+    </div>
+  </div>
+</nav>
 
-    <!--
-        1. Módulos ES de la app (lógica original, sin tocar).
-           Estos se ejecutan de forma diferida y asíncrona.
-    -->
     <script type="module" src="./diccionario_conjugaciones.js"></script>
     <script type="module" src="./explicacion_irregularidades_tiempos.js"></script>
-
-    <!--
-        2. script3.js — módulo ES con toda la lógica.
-           Al terminar, expone todas las funciones en window.*
-           pero NO llama a mostrarMenu() por sí solo.
-    -->
     <script type="module" src="./script3.js"></script>
-
-    <!--
-        3. dock.jsx — componente React del dock inferior.
-           type="text/babel" → Babel lo transpila en el navegador.
-           data-type="module" NO; lo dejamos como script normal
-           para que tenga acceso a window.React / window.ReactDOM.
-
-           Se usa un pequeño truco: esperamos a que los módulos ES
-           hayan terminado registrando sus exports en window antes
-           de que el usuario pueda pulsar nada, lo cual ocurre de
-           forma natural porque los módulos siempre se ejecutan
-           antes del primer evento de usuario.
-
-           El propio dock.jsx llama a mountDock() en DOMContentLoaded
-           o inmediatamente si el DOM ya está listo.
-    -->
-    <script type="text/babel" src="./dock.jsx" data-presets="react"></script>
-
-    <!--
-        4. Arranca el menú inicial UNA VEZ que todo está cargado.
-           Usamos window.onload (dispara tras imágenes + scripts)
-           para garantizar que script3.js ya expuso sus funciones.
-    -->
-    <script>
-        window.addEventListener('load', function () {
-            if (typeof window.mostrarMenu === 'function') {
-                window.mostrarMenu();
-            }
-        });
-    </script>
 </body>
 </html>

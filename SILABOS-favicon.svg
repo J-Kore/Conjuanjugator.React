@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="48" height="48">
+  <defs>
+    <radialGradient id="betG" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FF2DA6"/>
+      <stop offset="60%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </radialGradient>
+    <radialGradient id="rigG" cx="40%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="45%" stop-color="#00C8FF"/>
+      <stop offset="100%" stop-color="#0096C8"/>
+    </radialGradient>
+    <radialGradient id="starG" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="55%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="haloBet" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF2DA6" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#FF2DA6" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FF2DA6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="haloRig" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00C8FF" stop-opacity="0.5"/>
+      <stop offset="45%" stop-color="#00C8FF" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#00C8FF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="1.1" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fondo redondo casi negro (favicon-friendly) -->
+  <circle cx="60" cy="60" r="60" fill="#0A0A12"/>
+  <circle cx="60" cy="60" r="59" fill="none" stroke="#A855F7" stroke-opacity="0.25" stroke-width="1"/>
+
+  <!-- Halos amplios, con margen de sobra dentro del lienzo -->
+  <circle cx="42" cy="38" r="30" fill="url(#haloBet)"/>
+  <circle cx="80" cy="84" r="30" fill="url(#haloRig)"/>
+
+  <!--
+    Constelación de Orión, recentrada en el lienzo 120x120.
+    Cintura (las 3 marías) en diagonal central; Betelgeuse arriba-izq, Rigel abajo-der.
+    Coordenadas con margen mínimo de 16px a cada borde.
+  -->
+  <g stroke-linecap="round" fill="none">
+    <!-- líneas moradas (cuerpo) -->
+    <g stroke="#A855F7" stroke-width="1.4" opacity="0.85">
+      <line x1="42" y1="38" x2="78" y2="44"/>
+      <line x1="42" y1="38" x2="50" y2="62"/>
+      <line x1="78" y1="44" x2="72" y2="62"/>
+      <line x1="50" y1="62" x2="38" y2="90"/>
+      <line x1="72" y1="62" x2="80" y2="84"/>
+    </g>
+    <!-- cinturón (cian, más grueso) -->
+    <g stroke="#00C8FF" stroke-width="2" opacity="0.95">
+      <line x1="50" y1="62" x2="61" y2="61"/>
+      <line x1="61" y1="61" x2="72" y2="62"/>
+    </g>
+    <!-- línea base punteada (espada/base) -->
+    <line x1="38" y1="90" x2="80" y2="84" stroke="#00C8FF" stroke-width="0.9" stroke-dasharray="2.5,4" opacity="0.7"/>
+  </g>
+
+  <!-- Estrellas -->
+  <!-- Betelgeuse (fuxia, hombro sup-izq) -->
+  <circle cx="42" cy="38" r="5.2" fill="url(#betG)" filter="url(#soft)"/>
+  <!-- Bellatrix (hombro sup-der) -->
+  <circle cx="78" cy="44" r="3.4" fill="#A855F7" filter="url(#soft)"/>
+  <!-- Cinturón: 3 marías -->
+  <circle cx="50" cy="62" r="2.8" fill="#00C8FF" filter="url(#soft)"/>
+  <circle cx="61" cy="61" r="3"   fill="#FFFFFF" filter="url(#soft)"/>
+  <circle cx="72" cy="62" r="2.8" fill="#00C8FF" filter="url(#soft)"/>
+  <!-- Saiph (rodilla izq) -->
+  <circle cx="38" cy="90" r="2.6" fill="#A855F7" filter="url(#soft)"/>
+  <!-- Rigel (pie der, cian brillante) -->
+  <circle cx="80" cy="84" r="4.6" fill="url(#rigG)" filter="url(#soft)"/>
+
+  <!-- destellos sutiles centrados sobre estrellas grandes -->
+  <circle cx="42" cy="38" r="9" fill="url(#starG)" opacity="0.5"/>
+  <circle cx="80" cy="84" r="8" fill="url(#starG)" opacity="0.45"/>
+</svg>
