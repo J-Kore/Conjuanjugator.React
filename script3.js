@@ -218,7 +218,7 @@ const uniformButtonStyles = {
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.3s ease-in-out',
     transform: 'scale(1)',
-    color: '#0E0E1A' // Color del texto del botón
+    color: '#EDEDF5' // Color del texto del botón (claro, legible sobre superficie oscura)
 };
 
     // Función auxiliar para crear y añadir botones a un contenedor de fila
@@ -232,6 +232,8 @@ const uniformButtonStyles = {
             // Aplicar estilos uniformes
             Object.assign(button.style, uniformButtonStyles);
             button.style.backgroundColor = colors.bg;
+            // Texto oscuro si el fondo es un color vivo (rosa); claro si es superficie translúcida
+            button.style.color = (typeof colors.bg === 'string' && colors.bg.startsWith('#')) ? '#0A0A12' : '#EDEDF5';
 
             // Añadir eventos para el efecto hover
             button.onmouseover = () => {
@@ -595,75 +597,37 @@ function displayTimeSelection() {
     allButtonsWrapper.style.margin = '0 auto';
     irregularVerbsListContainer.appendChild(allButtonsWrapper);
 
-    const basicTiempos = ["presente", "pretérito perfecto", "pretérito indefinido", "pretérito imperfecto"];
-    const intermediateTiempos = ["futuro", "condicional", "pluscuamperfecto", "presente de subjuntivo"];
-    const advancedTiempos = ["imperfecto de subjuntivo", "pluscuamperfecto de subjuntivo"];
+    // Agrupados por MODO (Indicativo / Subjuntivo), en filas a lo largo (como los otros selectores)
+    const indicativoTiempos = ["presente", "pretérito perfecto", "pretérito indefinido", "pretérito imperfecto", "pluscuamperfecto", "futuro", "condicional"];
+    const subjuntivoTiempos = ["presente de subjuntivo", "imperfecto de subjuntivo", "pluscuamperfecto de subjuntivo"];
 
-    // Fila de Nivel Básico (4 botones)
-    // Estas const para basicRowContainer etc., están bien porque siempre se adjuntan
-    // a allButtonsWrapper, que a su vez está en el recién creado irregularVerbsListContainer.
-    const basicRowContainer = document.createElement('div');
-    basicRowContainer.classList.add('time-row-group');
-    basicRowContainer.style.display = 'grid';
-    basicRowContainer.style.gap = '1rem';
-    const mediaQueryBasicMd = window.matchMedia('(min-width: 768px)');
-    const adjustBasicGrid = () => {
-        basicRowContainer.style.gridTemplateColumns = mediaQueryBasicMd.matches ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)';
-        if (!mediaQueryBasicMd.matches && window.matchMedia('(max-width: 639px)').matches) {
-            basicRowContainer.style.gridTemplateColumns = 'repeat(1, 1fr)';
-        }
+    const onSeleccionarTiempo = (tiempoKey) => {
+        currentSelectedTheoryTime = tiempoKey;
+        displayRegularIrregularChoice();
     };
-    adjustBasicGrid();
-    mediaQueryBasicMd.addEventListener('change', adjustBasicGrid);
-    createAndAppendButtons(basicTiempos, basicRowContainer, { bg: "rgba(255,255,255,0.045)", hoverBg: "rgba(255,255,255,0.07)" });
-    allButtonsWrapper.appendChild(basicRowContainer);
 
-    // Fila de Nivel Intermedio (4 botones)
-    const intermediateRowContainer = document.createElement('div');
-    intermediateRowContainer.classList.add('time-row-group');
-    intermediateRowContainer.style.display = 'grid';
-    intermediateRowContainer.style.gap = '1rem';
-    const mediaQueryIntermediateMd = window.matchMedia('(min-width: 768px)');
-    const adjustIntermediateGrid = () => {
-        intermediateRowContainer.style.gridTemplateColumns = mediaQueryIntermediateMd.matches ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)';
-        if (!mediaQueryIntermediateMd.matches && window.matchMedia('(max-width: 639px)').matches) {
-            intermediateRowContainer.style.gridTemplateColumns = 'repeat(1, 1fr)';
-        }
+    const construirGrupoModo = (tituloModo, claseModo, tiempos, accent) => {
+        // Solo los tiempos que existan en los datos de irregularidades
+        const disponibles = tiempos.filter(t => todosLosTiemposVerbales.includes(t));
+        if (disponibles.length === 0) return;
+
+        const label = document.createElement('div');
+        label.className = 'group-label ' + claseModo;
+        label.textContent = tituloModo;
+        allButtonsWrapper.appendChild(label);
+
+        const lista = document.createElement('div');
+        lista.className = 'row-list row-list--compact';
+        disponibles.forEach(t => {
+            lista.appendChild(crearRowTiempo(t, accent, () => onSeleccionarTiempo(t)));
+        });
+        allButtonsWrapper.appendChild(lista);
     };
-    adjustIntermediateGrid();
-    mediaQueryIntermediateMd.addEventListener('change', adjustIntermediateGrid);
-    createAndAppendButtons(intermediateTiempos, intermediateRowContainer, { bg: "rgba(255,255,255,0.10)", hoverBg: "#9A9AB0" });
-    allButtonsWrapper.appendChild(intermediateRowContainer);
 
-    // Fila de Nivel Avanzado (2 botones)
-    const advancedRowContainer = document.createElement('div');
-    advancedRowContainer.classList.add('time-row-group');
-    advancedRowContainer.style.display = 'grid';
-    advancedRowContainer.style.gap = '1rem';
-    const mediaQueryAdvancedMd = window.matchMedia('(min-width: 768px)');
-    const adjustAdvancedGrid = () => {
-        if (mediaQueryAdvancedMd.matches) {
-            advancedRowContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
-            advancedRowContainer.style.maxWidth = '400px';
-            advancedRowContainer.style.margin = '0 auto';
-        } else if (window.matchMedia('(min-width: 640px)').matches) {
-            advancedRowContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
-            advancedRowContainer.style.maxWidth = '400px';
-            advancedRowContainer.style.margin = '0 auto';
-        } else {
-            advancedRowContainer.style.gridTemplateColumns = 'repeat(1, 1fr)';
-            advancedRowContainer.style.maxWidth = '100%';
-            advancedRowContainer.style.margin = '0';
-        }
-    };
-    adjustAdvancedGrid();
-    mediaQueryAdvancedMd.addEventListener('change', adjustAdvancedGrid);
-    window.matchMedia('(min-width: 640px)').addEventListener('change', adjustAdvancedGrid);
-    window.matchMedia('(max-width: 639px)').addEventListener('change', adjustAdvancedGrid);
-    createAndAppendButtons(advancedTiempos, advancedRowContainer, { bg: "#FF2DA6", hoverBg: "#C81E86" });
-    allButtonsWrapper.appendChild(advancedRowContainer);
+    construirGrupoModo('Modo Indicativo', 'ind', indicativoTiempos, 'var(--cian)');
+    construirGrupoModo('Modo Subjuntivo', 'sub', subjuntivoTiempos, 'var(--amarillo)');
 
-   
+
     // Botón para volver al menú de Irregularidades"
     const backToTheoryMenuBtn = document.createElement('button');
     backToTheoryMenuBtn.textContent = '↩️ Volver a Irregularidades';
@@ -999,6 +963,7 @@ function displayRegularIrregularChoice() {
     irregularVerbsButton.textContent = 'Irregularidades';
     Object.assign(irregularVerbsButton.style, uniformButtonStyles);
     irregularVerbsButton.style.backgroundColor = '#FF2DA6'; // Rosa
+    irregularVerbsButton.style.color = '#0A0A12';
     irregularVerbsButton.onmouseover = () => { irregularVerbsButton.style.backgroundColor = '#C81E86'; regularVerbsButton.style.transform = 'scale(1.05)'; };
     irregularVerbsButton.onmouseout = () => { irregularVerbsButton.style.backgroundColor = '#FF2DA6'; regularVerbsButton.style.transform = 'scale(1)'; };
     irregularVerbsButton.addEventListener('click', () => displayBroadCategories()); // Llama a displayBroadCategories para el tiempo actual
@@ -2016,7 +1981,7 @@ function mostrarJuegoArrastrarVerbosPorTiempo(tiempoKey) {
     explanationButton.title = 'Ver explicación de los tipos de verbo';
     explanationButton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><use href="#i-help"/></svg>¿Qué tipos de verbos hay?';
     explanationButton.onclick = function() {
-        mostrarModalVerbo('./Irregularidades.png');
+        mostrarModalTiposVerbos();
     };
 
     explanationButtonContainer.appendChild(explanationButton);
@@ -3698,62 +3663,26 @@ function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales)
     labelInstrucciones.style.margin = '0';
     instructionsContainer.appendChild(labelInstrucciones);
     
-    // Botón de ayuda (sin position absolute)
-    const helpButton = document.createElement('button');
-    helpButton.id = 'help-button';
-    helpButton.innerHTML = '?';
-    helpButton.title = 'Mostrar irregularidades del verbo';
-    // El CSS del botón NO necesita position absolute con esta solución
-
-    // Código para el nuevo botón de explicación
-    // Crear el nuevo botón redondo para la explicación
+    // Botón de ayuda único (píldora morada), abre el modal de tipos de verbos
     const explanationButton = document.createElement('button');
-    explanationButton.id = 'explanation-button'; // Le asignamos un ID para estilado
-    explanationButton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><use href="#i-help"/></svg>'; explanationButton.classList.add('help-icon-btn');
-    explanationButton.title = 'Ver explicación del verbo'; // Un tooltip útil
-    explanationButton.style.position = 'absolute';
-    explanationButton.style.top = '20px';
-    explanationButton.style.right = '70px'; // Ajusta la posición para que no choque con el botón '?'
-    explanationButton.style.width = '40px'; // Ancho del botón
-    explanationButton.style.height = '40px'; // Altura del botón
-    explanationButton.style.borderRadius = '60%'; // ¡Esto lo hace redondo!
-    explanationButton.style.border = 'none';
-    explanationButton.style.backgroundColor = '#FACC15'; // Un color amarillo para el ícono
-    explanationButton.style.fontSize = '1.2em';
-    explanationButton.style.fontWeight = 'bold';
-    explanationButton.style.cursor = 'pointer';
-    explanationButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-    explanationButton.style.transition = 'transform 0.2s ease, background-color 0.2s ease';
+    explanationButton.id = 'explanation-button';
+    explanationButton.className = 'help-btn';
+    explanationButton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><use href="#i-help"/></svg>¿Qué tipos de verbos hay?';
+    explanationButton.title = 'Ver tipos de verbos irregulares';
     explanationButton.onclick = function() {
-        mostrarModalVerbo('./Irregularidades.png');
+        mostrarModalTiposVerbos();
     };
-    explanationButton.addEventListener('mouseenter', () => {
-        explanationButton.style.transform = 'scale(1.1)';
-        explanationButton.style.backgroundColor = '#FACC15';
-    });
-    explanationButton.addEventListener('mouseleave', () => {
-        explanationButton.style.transform = 'scale(1)';
-        explanationButton.style.backgroundColor = '#FACC15';
-    });
 
-    
-    // Animación de pulso
-    setInterval(() => {
-        if (!helpButton.matches(':hover')) {
-            helpButton.style.animation = 'pulse 0.6s ease-in-out';
-            setTimeout(() => {
-                helpButton.style.animation = '';
-            }, 600);
-        }
-    }, 5000);
-    
-    helpButton.onclick = toggleAyudaIrregularidades;
-    
     // Ensamblar estructura
     headerContainer.appendChild(instructionsContainer);
-    headerContainer.appendChild(explanationButton); // Se añade el nuevo botón de ayuda-imagen
-    headerContainer.appendChild(helpButton);
     practiceContainer.appendChild(headerContainer);
+    // El botón de ayuda va centrado debajo de las instrucciones (sin solaparse)
+    const helpRow = document.createElement('div');
+    helpRow.style.display = 'flex';
+    helpRow.style.justifyContent = 'center';
+    helpRow.style.margin = '6px 0 16px';
+    helpRow.appendChild(explanationButton);
+    practiceContainer.appendChild(helpRow);
     const labelVerbo = document.createElement('h3');
     labelVerbo.id = 'label-verbo';
     labelVerbo.style.color = '#00C8FF'; // Un color que destaque para el verbo
@@ -5738,12 +5667,52 @@ function mostrarModalVerbo(imagenUrl) {
     const imagen = document.getElementById('imagen-explicativa');
     if (modal && imagen) {
         imagen.src = imagenUrl;
-        modal.style.display = 'flex'; // Usamos flex para centrar el contenido
+        imagen.style.maxWidth = '100%';
+        imagen.style.height = 'auto';
+        imagen.style.display = 'block';
+        modal.style.display = 'flex';
     }
-    image.style.maxWidth = '100%';
-    image.style.height = 'auto';
-    image.style.display = 'block';
 }
+
+// === Modal único de "tipos de verbos irregulares" (estilo v5, fiel a la infografía) ===
+function mostrarModalTiposVerbos() {
+    const existente = document.getElementById('modal-tipos-verbos');
+    if (existente) existente.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-tipos-verbos';
+    overlay.className = 'modal-overlay sil-modal-overlay';
+    overlay.style.display = 'flex';
+
+    const cerrar = () => overlay.remove();
+
+    const tipos = [
+        { ic:'cat-somb', color:'var(--amarillo)', t:'Sombrero', d:'solo la primera persona (yo) es irregular. Terminaciones -go, -ígo, -oy, -zco.' },
+        { ic:'cat-bota', color:'var(--cian)', t:'Bota', d:'cambio de vocal en todas las personas excepto nosotros y vosotros (e&gt;ie, o&gt;ue, e&gt;i, u&gt;ue).' },
+        { ic:'cat-bs', color:'var(--fuxia)', t:'Bota con sombrero', d:'yo irregular Y cambio de vocal en el resto (salvo nosotros/vosotros).' },
+        { ic:'cat-radical', color:'var(--morado)', t:'Radical', d:'la raíz es irregular. En indefinido cambian la raíz o añaden u, i…' },
+        { ic:'cat-alien', color:'var(--verde)', t:'Completo irregular', d:'irregularidad total, la conjugación cambia por completo.', full:true },
+    ];
+
+    const tarjetas = tipos.map(x => `
+        <div class="sil-tipo${x.full ? ' sil-tipo-full' : ''}">
+            <svg class="sil-tipo-ico" viewBox="0 0 24 24" style="stroke:${x.color}"><use href="#${x.ic}"/></svg>
+            <span><b style="color:${x.color}">${x.t}</b>: ${x.d}</span>
+        </div>`).join('');
+
+    overlay.innerHTML = `
+        <div class="modal-content sil-modal">
+            <button class="modal-close-btn" aria-label="Cerrar">&times;</button>
+            <h3 class="modal-title">¿Qué tipos de verbos irregulares hay?</h3>
+            <p style="color:var(--text-soft);margin:0 0 14px;font-size:.95rem">Clasificamos las irregularidades por <b style="color:var(--text)">qué personas</b> cambian. Cada tipo tiene su icono:</p>
+            <div class="sil-tipos-grid">${tarjetas}</div>
+        </div>`;
+
+    overlay.querySelector('.modal-close-btn').onclick = cerrar;
+    overlay.onclick = (e) => { if (e.target === overlay) cerrar(); };
+    document.body.appendChild(overlay);
+}
+if (typeof window !== 'undefined') window.mostrarModalTiposVerbos = mostrarModalTiposVerbos;
 
 function cerrarModalVerbo() {
     const modal = document.getElementById('modal-verbo');

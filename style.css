@@ -1037,3 +1037,37 @@ body{padding-bottom:84px;}
   transition:.2s;
 }
 .mini-toggle-btn:hover{background:rgba(0,200,255,.2);box-shadow:0 0 14px rgba(0,200,255,.35);transform:none;}
+
+/* ===== Modal de tipos de verbos irregulares (único, estilo v5) ===== */
+.sil-modal-overlay{z-index:2500;}
+.modal-content.sil-modal{
+  max-width:680px;
+  background:#12121E;
+  border:1px solid var(--morado);
+  box-shadow:0 0 50px rgba(168,85,247,.4);
+}
+.sil-tipos-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:6px;
+}
+.sil-tipo{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:13px 15px;
+}
+.sil-tipo-full{grid-column:1 / -1;}
+.sil-tipo-ico{
+  width:34px;height:34px;flex:none;
+  fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+}
+.sil-tipo span{font-size:.92rem;line-height:1.5;color:var(--text);}
+@media (max-width:560px){
+  .sil-tipos-grid{grid-template-columns:1fr;}
+  .sil-tipo-full{grid-column:auto;}
+}
