@@ -71,7 +71,7 @@ export function formatIrregularityExample(ejemplo, tiempoVerbal) {
 
     // Verificación inicial del verbo en conjugaciones
     if (!conjugaciones[verbLowerCase]) {
-        return `<strong style="color: #27C21A;">${capitalizeFirstLetter(ejemplo.verbo)}:</strong> <span style="color: hotpink;">[Verbo no disponible]</span>`;
+        return `<strong style="color: #00C8FF;">${capitalizeFirstLetter(ejemplo.verbo)}:</strong> <span style="color: #FF2DA6;">[Verbo no disponible]</span>`;
     }
 
     const conjugatedFormsRaw = []; // Aquí almacenaremos solo las palabras conjugadas (ej. "hablé", "hablaste")
@@ -89,12 +89,12 @@ export function formatIrregularityExample(ejemplo, tiempoVerbal) {
 
     // Si no se encontró ninguna conjugación para ninguna de las personas solicitadas
     if (conjugatedFormsRaw.length === 0) {
-        return `<strong style="color: #27C21A;">${capitalizeFirstLetter(ejemplo.verbo)}:</strong> <span style="color: hotpink;">[Conjugación no disponible para este tiempo o pronombre(s)]</span>`;
+        return `<strong style="color: #00C8FF;">${capitalizeFirstLetter(ejemplo.verbo)}:</strong> <span style="color: #FF2DA6;">[Conjugación no disponible para este tiempo o pronombre(s)]</span>`;
     }
 
     // *** ESTA ES LA LÍNEA CLAVE QUE GENERA EL FORMATO VISUAL DESEADO ***
     // Usa los estilos y la estructura exacta que me proporcionaste.
-    return `<strong style="color: #27C21A;">${capitalizeFirstLetter(ejemplo.verbo)}:</strong> <span style="color: hotpink;">${conjugatedFormsRaw.join(', ')}</span>`;
+    return `<strong style="color: #00C8FF;">${capitalizeFirstLetter(ejemplo.verbo)}:</strong> <span style="color: #FF2DA6;">${conjugatedFormsRaw.join(', ')}</span>`;
 }
 
 
@@ -107,10 +107,10 @@ export function generarHtmlExplicacionTiempoIrregularidad(tiempoVerbal) {
 
     // APLICAMOS ESTILOS EN LÍNEA AL CONTENEDOR PRINCIPAL para que coincida con mostrarDetalleIrregularidadVerbo
     // Mantenemos 'explanation-main-container' por si tiene estilos globales en tu CSS
-    let htmlContent = `<div class="explanation-main-container" style="background-color: white; color: #333; padding: 25px; border-radius: 12px; margin: 20px auto; max-width: 800px; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); text-align: left; line-height: 1.6;">`;
+    let htmlContent = `<div class="explanation-main-container" style="background-color: rgba(255,255,255,0.045); color: #EDEDF5; padding: 25px; border-radius: 14px; margin: 20px auto; max-width: 800px; border: 1px solid rgba(255,255,255,0.08); text-align: left; line-height: 1.6;">`;
 
     // Título principal del tiempo: Mantenemos la clase 'verb-title' pero AÑADIMOS estilos en línea
-    htmlContent += `<h2 class="verb-title" style="color: #0056b3; text-align: center; margin-bottom: 25px;">${explicacionTiempo.titulo || capitalizeFirstLetter(tiempoVerbal)}</h2>`;
+    htmlContent += `<h2 class="verb-title" style="color: #00C8FF; text-align: center; margin-bottom: 25px;">${explicacionTiempo.titulo || capitalizeFirstLetter(tiempoVerbal)}</h2>`;
 
     // Descripción general del tiempo (esta parte ya usa 'info-box' y está bien)
     if (explicacionTiempo.descripcion) {
@@ -136,8 +136,8 @@ export function generarHtmlExplicacionTiempoIrregularidad(tiempoVerbal) {
             // APLICAMOS ESTILOS EN LÍNEA AL ITEM DE DETALLE para que coincida con 'irregularityInfoBox'
             // Mantenemos 'irregularity-detail-item' por si tiene estilos globales
             htmlContent += `
-                <div class="irregularity-detail-item" style="background-color: #f8f8f8; border: 1px solid #eee; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); padding: 15px;">
-                    <h4 style="color: #007bff;">${tipoIrregularidad.icono || ''} ${tipoIrregularidad.nombre}</h4>
+                <div class="irregularity-detail-item" style="background-color: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); margin-bottom: 20px; border-radius: 12px; padding: 15px;">
+                    <h4 style="color: #00C8FF;">${tipoIrregularidad.icono || ''} ${tipoIrregularidad.nombre}</h4>
                     <p class="description">${tipoIrregularidad.descripcion}</p>`;
 
             // Verbos de ejemplo (esta sección parece ya estar bien, solo ajustamos si es necesario)

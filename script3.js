@@ -714,6 +714,7 @@ function displayBroadCategories() {
 
         const textSpan = document.createElement('span');
         textSpan.textContent = tipoIrregularidad.nombre;
+        textSpan.style.textTransform = 'none';
 
         button.appendChild(iconDiv);
         button.appendChild(textSpan);
@@ -804,6 +805,7 @@ function displayPresenteIrregularGroups() {
         const textSpan = document.createElement('span');
         textSpan.textContent = grupo.nombre;
         textSpan.style.fontWeight = 'bold'; // Nombre del grupo en negrita
+        textSpan.style.textTransform = 'none';
 
         const descriptionP = document.createElement('p');
         descriptionP.textContent = grupo.descripcion;
@@ -811,6 +813,9 @@ function displayPresenteIrregularGroups() {
         descriptionP.style.color = '#C4C4D6'; // Color para la descripción
         descriptionP.style.marginTop = '0.25rem';
         descriptionP.style.textAlign = 'center';
+        descriptionP.style.textTransform = 'none'; // Evita capitalizar cada palabra
+        descriptionP.style.fontWeight = 'normal';
+        descriptionP.style.lineHeight = '1.5';
 
         button.appendChild(iconDiv);
         button.appendChild(textSpan);
@@ -891,6 +896,7 @@ function displayPresenteSubCategories(groupName) {
 
             const textSpan = document.createElement('span');
             textSpan.textContent = tipoIrregularidad.nombre; // Usa el nombre del tipo de irregularidad
+            textSpan.style.textTransform = 'none';
 
             button.appendChild(iconDiv);
             button.appendChild(textSpan);
@@ -2050,7 +2056,7 @@ function mostrarJuegoArrastrarVerbosPorTiempo(tiempoKey) {
         if (tiemposDeParticipio.includes(tiempo)) {
             let propertyToUse;
             if (tiempo === "pretérito perfecto") {
-                propertyToUse = "pluscuamperfectoTipoIrregular"; 
+                propertyToUse = "preteritoperfectoTipoIrregular"; // Corregido: usa la propiedad del pretérito perfecto (antes apuntaba por error al pluscuamperfecto)
             } else {
                 propertyToUse = `${tiempo.replace(/ /g, '')}TipoIrregular`;
             }
@@ -3222,9 +3228,11 @@ function mostrarMenuConfiguracion() {
 
     // Información actual
     const infoActual = document.createElement('div');
-    infoActual.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+    infoActual.style.backgroundColor = 'rgba(255,255,255,0.06)';
+    infoActual.style.border = '1px solid rgba(255,255,255,0.12)';
+    infoActual.style.color = '#EDEDF5';
     infoActual.style.padding = '15px';
-    infoActual.style.borderRadius = '8px';
+    infoActual.style.borderRadius = '10px';
     infoActual.style.marginBottom = '30px';
     infoActual.style.textAlign = 'left';
 
@@ -3638,6 +3646,8 @@ function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales)
     practiceContainer.style.borderRadius = '10px';
     practiceContainer.style.margin = '20px auto'; // Centrar y añadir margen superior/inferior
     practiceContainer.style.maxWidth = '700px'; // Ajusta el ancho máximo según tu diseño
+    practiceContainer.style.width = '100%';
+    practiceContainer.style.boxSizing = 'border-box';
     practiceContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; // Sombra suave
     practiceContainer.style.textAlign = 'center'; // Centrar el contenido dentro de este contenedor
     practiceContainer.style.position = 'relative'; // Necesario para posicionar el botón de ayuda
@@ -3653,7 +3663,6 @@ function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales)
     // Contenedor para las instrucciones
     const instructionsContainer = document.createElement('div');
     instructionsContainer.style.flex = '1';
-    instructionsContainer.style.paddingRight = '50px'; // Espacio para el botón
     
     // Instrucciones
     const labelInstrucciones = document.createElement('p');
@@ -3904,6 +3913,8 @@ document.addEventListener('keydown', (e) => {
 appContainer.appendChild(ayudaModal);
     // Finalmente, añade el contenedor de práctica al contenedor principal de la aplicación
     appContainer.appendChild(practiceContainer);
+    // Forzar recálculo de layout (evita el desajuste que se corregía con zoom)
+    requestAnimationFrame(() => { void practiceContainer.offsetHeight; window.dispatchEvent(new Event('resize')); });
 
     // Asegúrate de que currentVerbo y currentPronombre se establezcan aquí o en nuevoVerboTiemposVerbales
     nuevoVerboTiemposVerbales(tiemposParaPracticar);

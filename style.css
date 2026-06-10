@@ -1071,3 +1071,22 @@ body{padding-bottom:84px;}
   .sil-tipos-grid{grid-template-columns:1fr;}
   .sil-tipo-full{grid-column:auto;}
 }
+
+/* ===== FIX dock en móvil: que quepan todos los botones ===== */
+@media (max-width: 560px){
+  #main-dock-menu.botnav{padding:6px 8px;}
+  .botnav .inner{gap:5px;}
+  .botnav .home{font-size:.52rem;padding:2px;}
+  .botnav .home .ins-dock{width:26px;height:26px;}
+  .botnav .sep{display:none;}
+  .botnav .pri{gap:3px;}
+  .botnav .pri button{padding:5px 6px;font-size:.55rem;gap:2px;}
+  .botnav .pri button .ico{width:19px;height:19px;}
+  .botnav .util{gap:4px;}
+  .botnav .util button{width:34px;height:34px;}
+  .botnav .util button .ico{width:17px;height:17px;}
+}
+@media (max-width: 380px){
+  .botnav .pri button span{display:none;}
+  .botnav .pri button{padding:6px 7px;}
+}
