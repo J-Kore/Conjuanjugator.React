@@ -388,16 +388,16 @@ export const explicacionesIrregularidadesTiempos = {
                 descripcion: "El participio no sigue la regla de -ado/-ido. Hay que memorizarlos.",
                 icono: "🧠",
                 verbosEjemplo: [
-                    { verbo: "hacer", participio: ["participio"] },
-                    { verbo: "decir", participio: ["participio"] },
-                    { verbo: "abrir", participio: ["participio"] },
-                    { verbo: "cubrir", participio: ["participio"] },
-                    { verbo: "freír", participio: ["participio"] },
-                    { verbo: "imprimir", participio: ["participio"] },
-                    { verbo: "morir", participio: ["participio"] },
-                    { verbo: "romper", participio: ["participio"] },
-                    { verbo: "ver", participio: ["participio"] },
-                    { verbo: "poner", participio: ["participio"] }
+                    { verbo: "hacer", personas: [ "yo" ] },
+                    { verbo: "decir", personas: [ "yo" ] },
+                    { verbo: "abrir", personas: [ "yo" ] },
+                    { verbo: "cubrir", personas: [ "yo" ] },
+                    { verbo: "freír", personas: [ "yo" ] },
+                    { verbo: "imprimir", personas: [ "yo" ] },
+                    { verbo: "morir", personas: [ "yo" ] },
+                    { verbo: "romper", personas: [ "yo" ] },
+                    { verbo: "ver", personas: [ "yo" ] },
+                    { verbo: "poner", personas: [ "yo" ] }
                 ]
             },
             {

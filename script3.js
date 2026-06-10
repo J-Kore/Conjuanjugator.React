@@ -1195,7 +1195,7 @@ function generarTextoAyudaIrregularidades(verbo) {
         return "Información sobre las irregularidades de este verbo no encontrada.";
     }
 
-    let textoAyuda = `**Irregularidades de "${capitalizeFirstLetter(verbo)}" en los tiempos:**\n\n`;
+    let textoAyuda = `Irregularidades de "${capitalizeFirstLetter(verbo)}" en los tiempos:\n\n`;
 
     const tiempoMapping = {
         'presenteTipoIrregular': 'Presente',
@@ -1217,7 +1217,7 @@ function generarTextoAyudaIrregularidades(verbo) {
             // MODIFICACIÓN CLAVE AQUÍ: Solo considerar irregular si NO es "Regular"
             if (tipoIrregularidad && tipoIrregularidad !== "Regular") {
                 const nombreTiempo = tiempoMapping[prop] || capitalizeFirstLetter(prop.replace('TipoIrregular', ''));
-                textoAyuda += `- **${nombreTiempo}:** ${tipoIrregularidad}\n`;
+                textoAyuda += `· ${nombreTiempo}: ${tipoIrregularidad}\n`;
                 foundIrregularities = true;
             }
         }
@@ -3682,15 +3682,27 @@ function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales)
         mostrarModalTiposVerbos();
     };
 
+    // Segundo botón de ayuda: irregularidades de ESTE verbo en cada tiempo
+    const verbHelpButton = document.createElement('button');
+    verbHelpButton.className = 'help-btn help-btn--alt';
+    verbHelpButton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><use href="#i-warn"/></svg>¿Y este verbo?';
+    verbHelpButton.title = 'Ver en qué tiempos es irregular este verbo';
+    verbHelpButton.onclick = function() {
+        toggleAyudaIrregularidades();
+    };
+
     // Ensamblar estructura
     headerContainer.appendChild(instructionsContainer);
     practiceContainer.appendChild(headerContainer);
-    // El botón de ayuda va centrado debajo de las instrucciones (sin solaparse)
+    // Los dos botones de ayuda, centrados y sin solaparse (se apilan en móvil)
     const helpRow = document.createElement('div');
     helpRow.style.display = 'flex';
     helpRow.style.justifyContent = 'center';
+    helpRow.style.flexWrap = 'wrap';
+    helpRow.style.gap = '8px';
     helpRow.style.margin = '6px 0 16px';
     helpRow.appendChild(explanationButton);
+    helpRow.appendChild(verbHelpButton);
     practiceContainer.appendChild(helpRow);
     const labelVerbo = document.createElement('h3');
     labelVerbo.id = 'label-verbo';
@@ -3712,6 +3724,7 @@ function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales)
 
     tiemposParaPracticar.forEach(tiempo => {
         const divGroup = document.createElement('div');
+        divGroup.className = 'conj-row';
         divGroup.style.marginBottom = '10px';
         divGroup.style.width = '100%';
         divGroup.style.display = 'flex';
@@ -3719,6 +3732,7 @@ function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales)
         divGroup.style.alignItems = 'center';
 
         const labelTiempo = document.createElement('label');
+        labelTiempo.className = 'conj-label';
         labelTiempo.textContent = `${capitalizeFirstLetter(tiempo)}:`; // Usa la función capitalize
         labelTiempo.style.marginRight = '10px';
         labelTiempo.style.minWidth = '180px'; // Ancho mínimo ajustado para los labels
@@ -3730,6 +3744,7 @@ function mostrarActividadTiemposVerbales(tiemposAUsar = todosLosTiemposVerbales)
         entryTiempo.type = 'text';
         entryTiempo.id = `input-${tiempo}`;
         entryTiempo.style.flexGrow = '1'; // El input tomará el espacio restante
+        entryTiempo.className = 'conj-input';
         entryTiempo.style.maxWidth = '300px'; // Ancho máximo para el input
         entryTiempo.style.padding = '10px';
         entryTiempo.style.borderRadius = '8px';
@@ -3833,6 +3848,10 @@ modalTitle.textContent = '📚 Irregularidades del Verbo';
 modalTitle.style.margin = '0';
 modalTitle.style.fontSize = '1.5em';
 modalTitle.style.fontWeight = '600';
+modalTitle.style.color = '#FFFFFF';
+modalTitle.style.setProperty('-webkit-text-fill-color', '#FFFFFF');
+modalTitle.style.background = 'none';
+modalTitle.style.fontFamily = "'Orbitron', sans-serif";
 
 const closeButton = document.createElement('button');
 closeButton.innerHTML = '✕';
